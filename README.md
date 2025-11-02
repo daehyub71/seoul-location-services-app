@@ -1,6 +1,14 @@
 # Seoul Location Services App
 
+[![GitHub](https://img.shields.io/badge/GitHub-daehyub71-181717?logo=github)](https://github.com/daehyub71/seoul-location-services-app)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18.2-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-In%20Development-orange)](https://github.com/daehyub71/seoul-location-services-app)
+
 > 서울시 공공 서비스를 한눈에! 위치 기반 문화·교육·의료 정보 통합 플랫폼
+
+**🚧 현재 개발 중 (Week 1 - Day 1 완료)** | [개발 일정](./DEVELOPMENT_TIMELINE.md) | [프로젝트 계획](./PROJECT_PLAN.md)
 
 ## 프로젝트 소개
 
