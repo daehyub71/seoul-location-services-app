@@ -39,6 +39,9 @@ numpy==1.26.3
 # Scheduling
 apscheduler==3.10.4
 
+# Progress Bar
+tqdm==4.66.1
+
 # XML Parsing
 xmltodict==0.13.0
 lxml==5.1.0
