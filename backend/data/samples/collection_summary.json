@@ -1,0 +1,72 @@
+{
+  "collected_at": "2025-11-02T18:25:24.659649",
+  "total_endpoints": 9,
+  "successful": 9,
+  "failed": 0,
+  "total_records": 4824,
+  "endpoints": [
+    {
+      "key": "cultural_events",
+      "name": "culturalEventInfo",
+      "total_count": 4534,
+      "sample_count": 1000,
+      "has_error": false
+    },
+    {
+      "key": "public_libraries",
+      "name": "SeoulPublicLibraryInfo",
+      "total_count": 215,
+      "sample_count": 215,
+      "has_error": false
+    },
+    {
+      "key": "cultural_spaces",
+      "name": "culturalSpaceInfo",
+      "total_count": 971,
+      "sample_count": 971,
+      "has_error": false
+    },
+    {
+      "key": "disabled_libraries",
+      "name": "SeoulDisableLibraryInfo",
+      "total_count": 10,
+      "sample_count": 10,
+      "has_error": false
+    },
+    {
+      "key": "reservation_medical",
+      "name": "ListPublicReservationMedical",
+      "total_count": 18,
+      "sample_count": 18,
+      "has_error": false
+    },
+    {
+      "key": "reservation_education",
+      "name": "ListPublicReservationEducation",
+      "total_count": 303,
+      "sample_count": 303,
+      "has_error": false
+    },
+    {
+      "key": "reservation_culture",
+      "name": "ListPublicReservationCulture",
+      "total_count": 808,
+      "sample_count": 808,
+      "has_error": false
+    },
+    {
+      "key": "reservation_all",
+      "name": "tvYeyakCOllect",
+      "total_count": 2267,
+      "sample_count": 1000,
+      "has_error": false
+    },
+    {
+      "key": "future_heritage",
+      "name": "futureHeritageInfo",
+      "total_count": 499,
+      "sample_count": 499,
+      "has_error": false
+    }
+  ]
+}
