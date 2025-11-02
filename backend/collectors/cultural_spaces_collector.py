@@ -65,28 +65,23 @@ class CulturalSpacesCollector(BaseCollector):
             # API ID: 시설명 해시
             api_id = hashlib.md5(name.encode()).hexdigest()
 
-            # 입장료 boolean 변환
-            entrance_fee_str = self.normalize_string(record.get('ENTRANCE_FEE'))
-            is_free = entrance_fee_str in ['무료', '없음'] if entrance_fee_str else None
-
-            # 변환된 레코드
+            # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
                 'api_id': api_id,
-                'name': name,
-                'category_code': self.normalize_string(record.get('SUBJCODE')),
-                'category_name': self.normalize_string(record.get('CODENAME')),
-                'description': self.normalize_string(record.get('FAC_DESC')),
-                'address': self.normalize_string(record.get('ADDR')),
-                'phone': self.normalize_string(record.get('PHNE')),
-                'homepage_url': self.normalize_string(record.get('HOMEPAGE')),
-                'operating_hours': self.normalize_string(record.get('OPENHOUR')),
-                'closed_days': self.normalize_string(record.get('CLOSEDAY')),
-                'subway_info': self.normalize_string(record.get('SUBWAY_INFO')),
-                'bus_info': self.normalize_string(record.get('BUS_INFO')),
-                'entrance_fee': entrance_fee_str,
-                'is_free': is_free,
-                'lat': None,  # 좌표 없음
-                'lot': None   # 좌표 없음
+                'fac_name': name,
+                'guname': self.normalize_string(record.get('GUNAME')),
+                'subjcode': self.normalize_string(record.get('SUBJCODE')),
+                'fac_code': self.normalize_string(record.get('FAC_CODE')),
+                'codename': self.normalize_string(record.get('CODENAME')),
+                'addr': self.normalize_string(record.get('ADDR')),
+                'zipcode': self.normalize_string(record.get('ZIPCODE')),
+                'telno': self.normalize_string(record.get('TELNO') or record.get('PHNE')),
+                'homepage': self.normalize_string(record.get('HOMEPAGE')),
+                'restroomyn': self.normalize_string(record.get('RESTROOMYN')),
+                'parking_info': self.normalize_string(record.get('PARKING')),
+                'main_purps': self.normalize_string(record.get('MAIN_PURPS')),
+                'latitude': None,  # API에서 제공하지 않음 (지오코딩 필요)
+                'longitude': None  # API에서 제공하지 않음 (지오코딩 필요)
             }
 
             return transformed

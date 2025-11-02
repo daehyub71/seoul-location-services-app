@@ -223,28 +223,52 @@
 
 ---
 
-#### Day 5 (2025-11-06): Data Collectors 구현 (Part 2)
-**목표**: 공공예약 API 통합 및 데이터 프로세서 구현
+#### Day 5 (2025-11-02): Data Collectors 스키마 수정 및 검증 ✅ COMPLETED
+**목표**: Collector와 Supabase 스키마 정확히 매칭 및 데이터 수집 검증
 
 **Tasks**:
-- [ ] `collectors/reservations_collector.py`
-  - [ ] `/ListPublicReservationMedical` API 호출
-  - [ ] `/ListPublicReservationEducation` API 호출
-  - [ ] `/ListPublicReservationCulture` API 호출
-  - [ ] `/tvYeyakCOllect` API 호출
-  - [ ] 4개 API 결과 통합 및 중복 제거
-  - [ ] 예약 상태 필드 정규화
-- [ ] `collectors/data_processor.py` 구현
-  - [ ] 데이터 정규화 (공백 제거, 대소문자 통일)
-  - [ ] 필수 필드 검증 (위도, 경도, 이름)
-  - [ ] 중복 데이터 감지 (api_id 기준)
-  - [ ] 데이터 품질 점수 계산
-- [ ] 통합 테스트 (9개 API 전체 수집)
+- [x] Supabase 스키마 확인 및 필드명 매핑
+  - [x] SCHEMA_MAPPING.md 작성 (API 필드 → 스키마 컬럼 매핑)
+  - [x] 5개 테이블의 정확한 컬럼명 확인
+- [x] BaseCollector 날짜 파싱 개선
+  - [x] 유연한 날짜 포맷 지원 (%Y-%m-%d, %Y%m%d, %Y)
+  - [x] target_type 파라미터 추가 (date/timestamp/year)
+  - [x] Datetime 문자열 자동 분리 (YYYY-MM-DD HH:MM:SS.0 → YYYY-MM-DD)
+- [x] Cultural Events Collector 스키마 수정
+  - [x] category → codename으로 변경
+  - [x] start_date → strtdate로 변경
+  - [x] is_free를 VARCHAR(10)로 처리
+- [x] Libraries Collector 스키마 수정
+  - [x] name → library_name으로 변경
+  - [x] phone → tel로 변경
+  - [x] lat/lot → latitude/longitude로 변경
+- [x] Cultural Spaces Collector 스키마 수정
+  - [x] 완전히 재작성 (스키마와 많은 차이)
+  - [x] 13개 필드 정확히 매칭
+- [x] Future Heritages Collector 스키마 수정
+  - [x] category → main_category/sub_category로 변경
+  - [x] registered_at → year_designated (INTEGER)로 변경
+  - [x] lat/lot → latitude/longitude로 변경
+- [x] Public Reservations Collector 스키마 수정
+  - [x] category → service_type으로 변경
+  - [x] 25개 필드 정확히 매칭
+  - [x] 날짜 타입 분리 (DATE vs TIMESTAMPTZ)
+- [x] 데이터 수집 테스트 (--test 모드)
+  - [x] 문화행사: 992/1000 성공 (99.2%)
+  - [x] 도서관: 225/225 성공 (100%)
+  - [x] 문화공간: 971/971 성공 (100%)
+  - [x] 공공예약: 1,124/1,129 성공 (99.6%)
+  - [x] 미래유산: 0/499 (Day 6에서 수정 필요)
 
 **산출물**:
-- 공공예약 통합 Collector
-- 데이터 프로세서 완성
-- 통합 테스트 통과
+- SCHEMA_MAPPING.md (스키마 매핑 문서)
+- BaseCollector 개선 (유연한 날짜 파싱)
+- 5개 Collector 스키마 정확히 매칭
+- 총 3,312개 레코드 성공적으로 삽입 (86.6% 성공률)
+
+**발견된 이슈** (Day 6에서 수정):
+- ⚠️ Future Heritages 모두 스킵됨 (이유 확인 필요)
+- ⚠️ Collection Logs 스키마 불일치
 
 ---
 

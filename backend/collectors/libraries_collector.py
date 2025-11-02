@@ -80,19 +80,22 @@ class LibrariesCollector(BaseCollector):
 
             lat, lon = self.transform_coordinates(lat_str, lon_str)
 
-            # 변환된 레코드
+            # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
                 'api_id': api_id,
-                'name': name,
+                'library_name': name,
+                'library_type': 'public',  # 기본값, _collect_from_endpoint에서 덮어씀
+                'guname': self.normalize_string(record.get('FCODE_NM')),
                 'address': self.normalize_string(record.get('ADRES')),
-                'phone': self.normalize_string(record.get('TEL')),
-                'closed_days': self.normalize_string(record.get('FDRM_CLOSE_DATE')),
-                'operating_hours': self.normalize_string(record.get('OP_TIME')),
-                'homepage_url': self.normalize_string(record.get('HMPG_URL')),
-                'district': self.normalize_string(record.get('FCODE_NM')),
-                'lat': lat,
-                'lot': lon,
-                'library_type': 'public'  # 기본값
+                'tel': self.normalize_string(record.get('TEL')),
+                'homepage': self.normalize_string(record.get('HMPG_URL')),
+                'latitude': lat,
+                'longitude': lon,
+                'opertime': self.normalize_string(record.get('OP_TIME')),
+                'closing_day': self.normalize_string(record.get('FDRM_CLOSE_DATE')),
+                'book_count': None,  # API에서 제공하지 않음
+                'seat_count': None,  # API에서 제공하지 않음
+                'facilities': None   # API에서 제공하지 않음
             }
 
             return transformed

@@ -79,69 +79,73 @@ class PublicReservationsCollector(BaseCollector):
             # API ID: 서비스 ID 사용
             api_id = service_id
 
-            # 좌표 변환 (LAT/LOT가 반대로 저장됨 - swap=True)
-            # X는 실제로 경도(LOT), Y는 실제로 위도(LAT)
-            lat_str = record.get('Y')  # Y가 위도
-            lon_str = record.get('X')  # X가 경도
+            # 좌표 변환
+            # X는 경도, Y는 위도 (스키마: x_coord, y_coord)
+            x_coord_str = record.get('X')  # 경도
+            y_coord_str = record.get('Y')  # 위도
 
-            lat, lon = self.transform_coordinates(lat_str, lon_str, swap=False)
+            y_coord, x_coord = self.transform_coordinates(y_coord_str, x_coord_str, swap=False)
 
-            # 날짜 파싱 (YYYY-MM-DD HH:MM:SS.0 형식)
-            rcpt_begin = self.parse_date(
-                record.get('RCPTBGNDT', '').split()[0] if record.get('RCPTBGNDT') else None,
-                format='%Y-%m-%d'
-            )
-            rcpt_end = self.parse_date(
-                record.get('RCPTENDDT', '').split()[0] if record.get('RCPTENDDT') else None,
-                format='%Y-%m-%d'
-            )
-            svc_begin = self.parse_date(
-                record.get('SVCOPNBGNDT', '').split()[0] if record.get('SVCOPNBGNDT') else None,
-                format='%Y-%m-%d'
-            )
-            svc_end = self.parse_date(
-                record.get('SVCOPNENDDT', '').split()[0] if record.get('SVCOPNENDDT') else None,
-                format='%Y-%m-%d'
-            )
+            # 날짜 파싱 (유연한 포맷 지원)
+            # svcopnbgndt/svcopnenddt는 DATE, rcptbgndt/rcptenddt는 TIMESTAMPTZ
+            svc_begin = self.parse_date(record.get('SVCOPNBGNDT'), target_type='date')
+            svc_end = self.parse_date(record.get('SVCOPNENDDT'), target_type='date')
+            rcpt_begin = self.parse_date(record.get('RCPTBGNDT'), target_type='timestamp')
+            rcpt_end = self.parse_date(record.get('RCPTENDDT'), target_type='timestamp')
 
             # 인원 수 변환
-            max_capacity = None
-            min_capacity = None
+            v_max = None
+            v_min = None
+            revstdday = None
 
             try:
-                v_max = record.get('V_MAX')
-                if v_max:
-                    max_capacity = int(v_max)
+                v_max_str = record.get('V_MAX')
+                if v_max_str:
+                    v_max = int(v_max_str)
             except (ValueError, TypeError):
                 pass
 
             try:
-                v_min = record.get('V_MIN')
-                if v_min:
-                    min_capacity = int(v_min)
+                v_min_str = record.get('V_MIN')
+                if v_min_str:
+                    v_min = int(v_min_str)
             except (ValueError, TypeError):
                 pass
 
-            # 변환된 레코드
+            try:
+                revstdday_str = record.get('REVSTDDAY')
+                if revstdday_str:
+                    revstdday = int(revstdday_str)
+            except (ValueError, TypeError):
+                pass
+
+            # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
                 'api_id': api_id,
-                'service_name': name,
-                'category': category,
-                'place_name': self.normalize_string(record.get('PLACENM')),
-                'payment_method': self.normalize_string(record.get('PAYATNM')),
-                'reception_start': rcpt_begin,
-                'reception_end': rcpt_end,
-                'service_start': svc_begin,
-                'service_end': svc_end,
-                'district': self.normalize_string(record.get('AREANM')),
-                'description': self.normalize_string(record.get('DTLCONT')),
-                'phone': self.normalize_string(record.get('TELNO')),
-                'max_capacity': max_capacity,
-                'min_capacity': min_capacity,
-                'reservation_deadline': self.normalize_string(record.get('REVSTDDAY')),
-                'image_url': self.normalize_string(record.get('IMGURL')),
-                'lat': lat,
-                'lot': lon
+                'service_type': category,  # 'medical', 'education', 'culture'
+                'svcid': service_id,
+                'maxclassnm': self.normalize_string(record.get('MAXCLASSNM')),
+                'minclassnm': self.normalize_string(record.get('MINCLASSNM')),
+                'svcstatnm': self.normalize_string(record.get('SVCSTATNM')),
+                'svcnm': name,
+                'payatnm': self.normalize_string(record.get('PAYATNM')),
+                'placenm': self.normalize_string(record.get('PLACENM')),
+                'usetgtinfo': self.normalize_string(record.get('USETGTINFO')),
+                'svcurl': self.normalize_string(record.get('SVCURL')),
+                'x_coord': x_coord,  # DECIMAL(11, 8)
+                'y_coord': y_coord,  # DECIMAL(10, 8)
+                'svcopnbgndt': svc_begin,  # DATE
+                'svcopnenddt': svc_end,    # DATE
+                'rcptbgndt': rcpt_begin,   # TIMESTAMPTZ
+                'rcptenddt': rcpt_end,     # TIMESTAMPTZ
+                'areanm': self.normalize_string(record.get('AREANM')),
+                'imgurl': self.normalize_string(record.get('IMGURL')),
+                'dtlcont': self.normalize_string(record.get('DTLCONT')),
+                'telno': self.normalize_string(record.get('TELNO')),
+                'v_max': v_max,            # INTEGER
+                'v_min': v_min,            # INTEGER
+                'revstddaynm': self.normalize_string(record.get('REVSTDDAYNM')),
+                'revstdday': revstdday     # INTEGER
             }
 
             return transformed

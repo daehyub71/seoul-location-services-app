@@ -66,22 +66,26 @@ class FutureHeritagesCollector(BaseCollector):
             else:
                 api_id = hashlib.md5(name.encode()).hexdigest()
 
-            # 등록일 파싱
-            regist_date = self.parse_date(record.get('REGIST_DATE'))
+            # 등록 연도 파싱 (year_designated는 INTEGER)
+            regist_date_str = record.get('REGIST_DATE')
+            year_designated = self.parse_date(regist_date_str, target_type='year') if regist_date_str else None
 
-            # 변환된 레코드
+            # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
                 'api_id': api_id,
+                'no': int(record.get('NO')) if record.get('NO') else None,
+                'main_category': self.normalize_string(record.get('CATEGORY')),  # CATEGORY → main_category
+                'sub_category': self.normalize_string(record.get('ERA')),  # ERA → sub_category로 사용
                 'name': name,
-                'category': self.normalize_string(record.get('CATEGORY')),
-                'era': self.normalize_string(record.get('ERA')),
+                'year_designated': year_designated,  # INTEGER
+                'gu_name': self.normalize_string(record.get('GU_NAME')),
+                'dong_name': self.normalize_string(record.get('DONG_NAME')),
                 'address': self.normalize_string(record.get('ADDR')),
-                'content': self.normalize_string(record.get('CONTENT')),
-                'main_purpose': self.normalize_string(record.get('MAIN_PURPS')),
-                'registered_at': regist_date,
-                'main_image': self.normalize_string(record.get('T_IMAGE')),
-                'lat': None,  # 좌표 없음
-                'lot': None   # 좌표 없음
+                'latitude': None,  # API에서 제공하지 않음 (지오코딩 필요)
+                'longitude': None,  # API에서 제공하지 않음 (지오코딩 필요)
+                'description': self.normalize_string(record.get('CONTENT')),
+                'reason': self.normalize_string(record.get('MAIN_PURPS')),
+                'main_img': self.normalize_string(record.get('T_IMAGE'))
             }
 
             return transformed

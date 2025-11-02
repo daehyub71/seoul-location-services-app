@@ -82,46 +82,38 @@ class CulturalEventsCollector(BaseCollector):
             lon_str = record.get('LOT')
             lat, lon = self.transform_coordinates(lat_str, lon_str)
 
-            # 날짜 파싱
-            start_date_parsed = self.parse_date(
-                record.get('STRTDATE', '').split()[0] if record.get('STRTDATE') else None,
-                format='%Y-%m-%d'
-            )
-            end_date_parsed = self.parse_date(
-                record.get('END_DATE', '').split()[0] if record.get('END_DATE') else None,
-                format='%Y-%m-%d'
-            )
+            # 날짜 파싱 (유연한 포맷 지원)
+            start_date_parsed = self.parse_date(record.get('STRTDATE'))
+            end_date_parsed = self.parse_date(record.get('END_DATE'))
             registered_date = self.parse_date(record.get('RGSTDATE'))
 
-            # 유무료 boolean 변환
+            # 유무료 문자열 변환 (스키마는 VARCHAR(10))
             is_free_str = self.normalize_string(record.get('IS_FREE'))
-            is_free = is_free_str == '무료' if is_free_str else None
 
-            # 변환된 레코드
+            # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
                 'api_id': api_id,
                 'title': title,
-                'category': self.normalize_string(record.get('CODENAME')),
-                'district': self.normalize_string(record.get('GUNAME')),
+                'codename': self.normalize_string(record.get('CODENAME')),
+                'guname': self.normalize_string(record.get('GUNAME')),
                 'place': place,
-                'organization': self.normalize_string(record.get('ORG_NAME')),
-                'target': self.normalize_string(record.get('USE_TRGT')),
-                'fee': self.normalize_string(record.get('USE_FEE')),
-                'is_free': is_free,
-                'performer': self.normalize_string(record.get('PLAYER')),
+                'org_name': self.normalize_string(record.get('ORG_NAME')),
+                'use_trgt': self.normalize_string(record.get('USE_TRGT')),
+                'use_fee': self.normalize_string(record.get('USE_FEE')),
+                'player': self.normalize_string(record.get('PLAYER')),
                 'program': self.normalize_string(record.get('PROGRAM')),
-                'description': self.normalize_string(record.get('ETC_DESC')),
-                'start_date': start_date_parsed,
-                'end_date': end_date_parsed,
-                'time_info': self.normalize_string(record.get('PRO_TIME')),
-                'registered_at': registered_date,
-                'theme': self.normalize_string(record.get('THEMECODE')),
-                'ticket_type': self.normalize_string(record.get('TICKET')),
-                'lat': lat,
-                'lot': lon,
-                'homepage_url': self.normalize_string(record.get('HMPG_ADDR')),
+                'etc_desc': self.normalize_string(record.get('ETC_DESC')),
                 'org_link': self.normalize_string(record.get('ORG_LINK')),
-                'main_image': self.normalize_string(record.get('MAIN_IMG'))
+                'main_img': self.normalize_string(record.get('MAIN_IMG')),
+                'rgstdate': registered_date,
+                'ticket': self.normalize_string(record.get('TICKET')),
+                'strtdate': start_date_parsed,
+                'end_date': end_date_parsed,
+                'themecode': self.normalize_string(record.get('THEMECODE')),
+                'lot': lon,  # Longitude
+                'lat': lat,  # Latitude
+                'is_free': is_free_str,  # VARCHAR(10)
+                'hmpg_addr': self.normalize_string(record.get('HMPG_ADDR'))
             }
 
             return transformed

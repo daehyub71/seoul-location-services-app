@@ -157,16 +157,16 @@ class BaseCollector(ABC):
             logger.warning(f"Coordinate conversion error: {e}")
             return None, None
 
-    def parse_date(self, date_str: Optional[str], format: str = '%Y%m%d') -> Optional[str]:
+    def parse_date(self, date_str: Optional[str], target_type: str = 'date') -> Optional[str]:
         """
-        날짜 문자열 파싱
+        여러 형식의 날짜 문자열 파싱 (유연한 포맷 지원)
 
         Args:
-            date_str: 날짜 문자열 (예: '20250101')
-            format: 입력 포맷
+            date_str: 날짜 문자열 (예: '2025-10-20', '20251020', '2025-10-20 10:00:00.0')
+            target_type: 'date' (DATE), 'timestamp' (TIMESTAMPTZ), 'year' (INTEGER)
 
         Returns:
-            ISO 포맷 날짜 문자열 (YYYY-MM-DD) 또는 None
+            파싱된 날짜 문자열 또는 None
         """
         if not date_str:
             return None
@@ -179,11 +179,37 @@ class BaseCollector(ABC):
             if not date_str:
                 return None
 
-            # 날짜 파싱
-            dt = datetime.strptime(date_str, format)
-            return dt.date().isoformat()
+            # Datetime 형식인 경우 날짜 부분만 추출 (YYYY-MM-DD HH:MM:SS.0 → YYYY-MM-DD)
+            if ' ' in date_str:
+                date_str = date_str.split()[0]
 
-        except (ValueError, AttributeError) as e:
+            # 여러 포맷 시도
+            formats = [
+                '%Y-%m-%d',      # 2025-10-20 (가장 흔한 형식)
+                '%Y%m%d',        # 20251020
+                '%Y',            # 2025 (year only)
+            ]
+
+            for fmt in formats:
+                try:
+                    dt = datetime.strptime(date_str, fmt)
+
+                    # 타입에 따라 반환
+                    if target_type == 'year':
+                        return dt.year  # INTEGER
+                    elif target_type == 'timestamp':
+                        return dt.isoformat()  # TIMESTAMPTZ
+                    else:  # 'date'
+                        return dt.date().isoformat()  # DATE (YYYY-MM-DD)
+
+                except ValueError:
+                    continue
+
+            # 모든 포맷 실패
+            logger.warning(f"Date parsing failed for all formats: {date_str}")
+            return None
+
+        except (AttributeError, TypeError) as e:
             logger.warning(f"Date parsing error: {date_str} - {e}")
             return None
 
