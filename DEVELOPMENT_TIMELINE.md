@@ -154,32 +154,72 @@
 
 ---
 
-#### Day 4 (2025-11-05): Data Collectors 구현 (Part 1)
+#### Day 4 (2025-11-02): Data Collectors 구현 (Part 1) ✅ COMPLETED
 **목표**: 개별 API별 데이터 수집기 구현 (5개)
 
 **Tasks**:
-- [ ] `collectors/base_collector.py` 구현
-  - [ ] 추상 베이스 클래스 정의
-  - [ ] 공통 로깅 로직
-  - [ ] 데이터 검증 메서드
-- [ ] `collectors/cultural_events_collector.py`
-  - [ ] `/culturalEventInfo` API 호출
-  - [ ] 날짜 파싱 (YYYYMMDD → DATE)
-  - [ ] 이미지 URL 정규화
-- [ ] `collectors/libraries_collector.py`
-  - [ ] `/SeoulPublicLibraryInfo` API 호출
-  - [ ] `/SeoulDisableLibraryInfo` API 호출
-  - [ ] 두 API 결과 통합
-- [ ] `collectors/cultural_spaces_collector.py`
-  - [ ] `/culturalSpaceInfo` API 호출
-  - [ ] 주제 코드 매핑
-- [ ] `collectors/heritages_collector.py`
-  - [ ] `/futureHeritageInfo` API 호출
-  - [ ] 카테고리 정규화
+- [x] `collectors/base_collector.py` 구현 (360+ 줄)
+  - [x] 추상 베이스 클래스 정의 (ABC 상속)
+  - [x] Supabase 연결 관리
+  - [x] Seoul API Client 통합
+  - [x] 좌표 변환 지원 (CoordinateTransformer 통합)
+  - [x] 공통 로깅 로직
+  - [x] 데이터 검증 메서드 (validate_record)
+  - [x] 좌표 변환 메서드 (transform_coordinates, swap 지원)
+  - [x] 날짜 파싱 메서드 (parse_date)
+  - [x] 문자열 정규화 메서드 (normalize_string)
+  - [x] 수집 로그 기록 (_log_collection)
+  - [x] UPSERT 기능 (중복 시 업데이트)
+- [x] `collectors/cultural_events_collector.py` (180+ 줄)
+  - [x] `/culturalEventInfo` API 호출
+  - [x] 날짜 파싱 (YYYY-MM-DD 형식 지원)
+  - [x] 이미지 URL 정규화
+  - [x] 유무료 구분 boolean 변환
+  - [x] API ID 생성 (MD5 해시)
+- [x] `collectors/libraries_collector.py` (240+ 줄)
+  - [x] `/SeoulPublicLibraryInfo` API 호출
+  - [x] `/SeoulDisableLibraryInfo` API 호출
+  - [x] 두 API 결과 통합 (library_type 필드)
+  - [x] 좌표 필드 통합 (LAT/LNG, XCNTS/YDNTS)
+- [x] `collectors/cultural_spaces_collector.py` (130+ 줄)
+  - [x] `/culturalSpaceInfo` API 호출
+  - [x] 주제 코드 매핑 (SUBJCODE, CODENAME)
+  - [x] 좌표 없음 처리 (주소만 제공)
+  - [x] 입장료 무료 여부 boolean 변환
+- [x] `collectors/future_heritages_collector.py` (130+ 줄)
+  - [x] `/futureHeritageInfo` API 호출
+  - [x] 카테고리 정규화
+  - [x] 관리번호를 API ID로 사용
+  - [x] 좌표 없음 처리
+- [x] `collectors/public_reservations_collector.py` (300+ 줄)
+  - [x] `/ListPublicReservationMedical` API 호출
+  - [x] `/ListPublicReservationEducation` API 호출
+  - [x] `/ListPublicReservationCulture` API 호출
+  - [x] 3개 API 결과 통합 (category 필드)
+  - [x] 좌표 스왑 이슈 수정 (X=경도, Y=위도)
+  - [x] 예약 날짜 파싱
+  - [x] 인원 수 변환 (max_capacity, min_capacity)
+- [x] `scripts/collect_all_data.py` (150+ 줄)
+  - [x] 전체 Collector 통합 실행
+  - [x] 진행상황 표시
+  - [x] 테스트 모드 (--test 플래그)
+  - [x] 통계 출력
+- [x] `collectors/__init__.py` 패키지 초기화
 
 **산출물**:
-- 5개 Collector 클래스 완성
-- 수집 로그 기능 구현
+- ✅ Base Collector 추상 클래스 (360+ 줄)
+- ✅ 5개 Collector 클래스 완성 (980+ 줄)
+- ✅ 통합 수집 스크립트 (150+ 줄)
+- ✅ 총 코드 라인 수: 1,490+ 줄
+
+**발견된 이슈** (Day 5에서 수정 예정):
+- ⚠️ Collector 컬럼명과 Supabase 스키마 불일치
+  - 예: `category` → `codename`, `themecode`
+  - 예: `registered_at` → `rgstdate`
+- ⚠️ 날짜 파싱 포맷 불일치
+  - API 응답: `YYYY-MM-DD HH:MM:SS.0`
+  - 파싱 시도: `%Y%m%d` (YYYYMMDD 형식)
+  - 해결 필요: split()[0]로 날짜 부분만 추출 후 파싱
 
 ---
 
