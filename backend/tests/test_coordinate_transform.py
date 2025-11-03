@@ -149,12 +149,13 @@ class TestCoordinateTransformer:
 
     def test_seoul_bounds_constants(self):
         """서울시 경계 상수 테스트"""
-        bounds = CoordinateTransformer.SEOUL_BOUNDS
+        from app.core.config import settings
+        bounds = settings.SEOUL_BOUNDS
 
-        assert bounds['lat_min'] == 37.0
-        assert bounds['lat_max'] == 38.0
-        assert bounds['lon_min'] == 126.0
-        assert bounds['lon_max'] == 128.0
+        assert bounds['min_latitude'] == 37.0
+        assert bounds['max_latitude'] == 38.0
+        assert bounds['min_longitude'] == 126.0
+        assert bounds['max_longitude'] == 128.0
 
     def test_crs_constants(self):
         """좌표계 상수 테스트"""

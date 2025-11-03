@@ -19,7 +19,7 @@ class FutureHeritagesCollector(BaseCollector):
     API: /futureHeritageInfo
     테이블: future_heritages
 
-    Note: 이 API는 좌표 데이터가 없고 주소만 제공됨
+    Note: API에서 YCRD(위도), XCRD(경도) 제공
     """
 
     @property
@@ -35,15 +35,14 @@ class FutureHeritagesCollector(BaseCollector):
         API 응답 레코드를 future_heritages 스키마에 맞게 변환
 
         API 필드:
-        - NM: 유산명
+        - FTR_HRTG_NM: 유산명
+        - FTR_HRTG_ID: 미래유산 ID
+        - RGN: 지역(구명)
+        - LCTN_NM: 위치/주소
+        - YCRD: 위도 (latitude)
+        - XCRD: 경도 (longitude)
         - CATEGORY: 카테고리
-        - ERA: 시대
-        - MANAGE_NO: 관리번호
-        - ADDR: 주소
-        - CONTENT: 내용
-        - MAIN_PURPS: 주요용도
-        - REGIST_DATE: 등록일
-        - T_IMAGE: 대표이미지
+        - MAIN_CATEGORY: 주요 카테고리
 
         Args:
             record: Seoul API 응답 레코드
@@ -52,40 +51,41 @@ class FutureHeritagesCollector(BaseCollector):
             변환된 레코드 또는 None
         """
         try:
-            # 유산명
-            name = self.normalize_string(record.get('NM'))
+            # 유산명 (FTR_HRTG_NM)
+            name = self.normalize_string(record.get('FTR_HRTG_NM'))
 
             if not name:
-                logger.warning("Missing NM, skipping record")
+                logger.warning(f"Missing FTR_HRTG_NM, skipping record: {record}")
                 return None
 
-            # 관리번호가 있으면 그것을 API ID로 사용, 없으면 이름 해시
-            manage_no = self.normalize_string(record.get('MANAGE_NO'))
-            if manage_no:
-                api_id = manage_no
+            # FTR_HRTG_ID를 API ID로 사용, 없으면 이름 해시
+            ftr_hrtg_id = record.get('FTR_HRTG_ID')
+            if ftr_hrtg_id:
+                api_id = str(int(ftr_hrtg_id)) if isinstance(ftr_hrtg_id, float) else str(ftr_hrtg_id)
             else:
                 api_id = hashlib.md5(name.encode()).hexdigest()
 
-            # 등록 연도 파싱 (year_designated는 INTEGER)
-            regist_date_str = record.get('REGIST_DATE')
-            year_designated = self.parse_date(regist_date_str, target_type='year') if regist_date_str else None
+            # 좌표 추출: YCRD=위도, XCRD=경도
+            ycrd_str = record.get('YCRD')  # Latitude
+            xcrd_str = record.get('XCRD')  # Longitude
+            lat, lon = self.transform_coordinates(ycrd_str, xcrd_str, swap=False)
 
             # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
                 'api_id': api_id,
-                'no': int(record.get('NO')) if record.get('NO') else None,
-                'main_category': self.normalize_string(record.get('CATEGORY')),  # CATEGORY → main_category
-                'sub_category': self.normalize_string(record.get('ERA')),  # ERA → sub_category로 사용
+                'no': None,  # API에 NO 필드 없음
+                'main_category': self.normalize_string(record.get('MAIN_CATEGORY') or record.get('CATEGORY')),
+                'sub_category': None,  # API에 sub_category 해당 필드 없음
                 'name': name,
-                'year_designated': year_designated,  # INTEGER
-                'gu_name': self.normalize_string(record.get('GU_NAME')),
-                'dong_name': self.normalize_string(record.get('DONG_NAME')),
-                'address': self.normalize_string(record.get('ADDR')),
-                'latitude': None,  # API에서 제공하지 않음 (지오코딩 필요)
-                'longitude': None,  # API에서 제공하지 않음 (지오코딩 필요)
-                'description': self.normalize_string(record.get('CONTENT')),
-                'reason': self.normalize_string(record.get('MAIN_PURPS')),
-                'main_img': self.normalize_string(record.get('T_IMAGE'))
+                'year_designated': None,  # API에 year_designated 해당 필드 없음
+                'gu_name': self.normalize_string(record.get('RGN')),  # RGN → gu_name
+                'dong_name': None,  # API에 dong_name 해당 필드 없음
+                'address': self.normalize_string(record.get('LCTN_NM')),  # LCTN_NM → address
+                'latitude': lat,  # YCRD (위도)
+                'longitude': lon,  # XCRD (경도)
+                'description': None,  # API에 description 해당 필드 없음
+                'reason': None,  # API에 reason 해당 필드 없음
+                'main_img': None  # API에 main_img 해당 필드 없음
             }
 
             return transformed

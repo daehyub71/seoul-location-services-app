@@ -7,6 +7,8 @@ import logging
 from typing import Tuple, Optional
 from pyproj import Transformer, CRS
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,13 +22,10 @@ class CoordinateTransformer:
     - 서울시 범위 검증
     """
 
-    # 서울시 경계 (WGS84 기준)
-    SEOUL_BOUNDS = {
-        'lat_min': 37.0,    # 남단
-        'lat_max': 38.0,    # 북단
-        'lon_min': 126.0,   # 서단
-        'lon_max': 128.0    # 동단
-    }
+    # 서울시 경계 (settings에서 가져옴)
+    @property
+    def SEOUL_BOUNDS(self):
+        return settings.SEOUL_BOUNDS
 
     # 좌표계 정의
     CRS_WGS84 = "EPSG:4326"      # WGS84 (위도/경도)
@@ -102,8 +101,8 @@ class CoordinateTransformer:
             logger.error(f"WGS84 to TM conversion failed: {e}")
             raise ValueError(f"Invalid WGS84 coordinates: ({lon}, {lat})")
 
-    @classmethod
-    def is_in_seoul(cls, lat: float, lon: float) -> bool:
+    @staticmethod
+    def is_in_seoul(lat: float, lon: float) -> bool:
         """
         좌표가 서울시 범위 내에 있는지 확인
 
@@ -114,9 +113,10 @@ class CoordinateTransformer:
         Returns:
             서울시 내 위치 여부
         """
+        bounds = settings.SEOUL_BOUNDS
         return (
-            cls.SEOUL_BOUNDS['lat_min'] <= lat <= cls.SEOUL_BOUNDS['lat_max'] and
-            cls.SEOUL_BOUNDS['lon_min'] <= lon <= cls.SEOUL_BOUNDS['lon_max']
+            bounds['min_latitude'] <= lat <= bounds['max_latitude'] and
+            bounds['min_longitude'] <= lon <= bounds['max_longitude']
         )
 
     @classmethod

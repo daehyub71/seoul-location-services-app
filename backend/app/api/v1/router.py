@@ -4,18 +4,16 @@ Aggregates all v1 endpoints
 """
 
 from fastapi import APIRouter
+from app.api.v1.endpoints import services, geocode
 
 # Create main API router
 api_router = APIRouter()
 
-# Import and include endpoint routers (will be created in later days)
-# from app.api.v1.endpoints import services, geocode, recommendations
+# Include endpoint routers
+api_router.include_router(services.router, tags=["Services"])
+api_router.include_router(geocode.router, tags=["Geocoding"])
 
-# api_router.include_router(services.router, prefix="/services", tags=["Services"])
-# api_router.include_router(geocode.router, prefix="/geocode", tags=["Geocoding"])
-# api_router.include_router(recommendations.router, prefix="/recommendations", tags=["Recommendations"])
-
-# Placeholder endpoint for initial setup
+# Status endpoint
 @api_router.get("/status")
 async def api_status():
     """

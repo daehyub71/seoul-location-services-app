@@ -19,7 +19,7 @@ class CulturalSpacesCollector(BaseCollector):
     API: /culturalSpaceInfo
     테이블: cultural_spaces
 
-    Note: 이 API는 좌표 데이터가 없고 주소만 제공됨
+    Note: API에서 X_COORD(위도), Y_COORD(경도) 제공
     """
 
     @property
@@ -40,6 +40,8 @@ class CulturalSpacesCollector(BaseCollector):
         - CODENAME: 분류명
         - FAC_DESC: 시설설명
         - ADDR: 주소
+        - X_COORD: 위도 (latitude)
+        - Y_COORD: 경도 (longitude)
         - PHNE: 전화번호
         - HOMEPAGE: 홈페이지
         - OPENHOUR: 운영시간
@@ -65,6 +67,11 @@ class CulturalSpacesCollector(BaseCollector):
             # API ID: 시설명 해시
             api_id = hashlib.md5(name.encode()).hexdigest()
 
+            # 좌표 추출: X_COORD=위도, Y_COORD=경도
+            x_coord_str = record.get('X_COORD')  # Latitude
+            y_coord_str = record.get('Y_COORD')  # Longitude
+            lat, lon = self.transform_coordinates(x_coord_str, y_coord_str, swap=False)
+
             # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
                 'api_id': api_id,
@@ -80,8 +87,8 @@ class CulturalSpacesCollector(BaseCollector):
                 'restroomyn': self.normalize_string(record.get('RESTROOMYN')),
                 'parking_info': self.normalize_string(record.get('PARKING')),
                 'main_purps': self.normalize_string(record.get('MAIN_PURPS')),
-                'latitude': None,  # API에서 제공하지 않음 (지오코딩 필요)
-                'longitude': None  # API에서 제공하지 않음 (지오코딩 필요)
+                'latitude': lat,  # X_COORD (위도)
+                'longitude': lon  # Y_COORD (경도)
             }
 
             return transformed

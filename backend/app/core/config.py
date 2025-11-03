@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     # Upstash Redis Configuration
     UPSTASH_URL: str
     UPSTASH_TOKEN: str
+    REDIS_URL: Optional[str] = None  # Computed from UPSTASH_URL
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Set REDIS_URL from UPSTASH_URL if not explicitly provided
+        if self.REDIS_URL is None and hasattr(self, 'UPSTASH_URL'):
+            self.REDIS_URL = self.UPSTASH_URL
 
     # Seoul Open API Configuration
     SEOUL_API_KEY: str
@@ -92,6 +99,16 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         """Check if running in development environment"""
         return self.ENVIRONMENT.lower() == "development"
+
+    @property
+    def SEOUL_BOUNDS(self) -> dict:
+        """Get Seoul city bounds as dictionary"""
+        return {
+            'min_latitude': self.SEOUL_LAT_MIN,
+            'max_latitude': self.SEOUL_LAT_MAX,
+            'min_longitude': self.SEOUL_LON_MIN,
+            'max_longitude': self.SEOUL_LON_MAX
+        }
 
     def validate_coordinates(self, lat: float, lon: float) -> bool:
         """Validate if coordinates are within Seoul bounds"""

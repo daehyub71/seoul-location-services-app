@@ -40,21 +40,21 @@ class LibrariesCollector(BaseCollector):
         공공도서관 API 필드:
         - LBRRY_NAME: 도서관명
         - ADRES: 주소
-        - TEL: 전화번호
+        - TEL_NO: 전화번호
         - FDRM_CLOSE_DATE: 정기휴관일
         - OP_TIME: 운영시간
         - HMPG_URL: 홈페이지
-        - LAT: 위도
-        - LNG: 경도
-        - FCODE_NM: 지역명
+        - XCNTS: 위도 (latitude)
+        - YDNTS: 경도 (longitude)
+        - GU_CODE, CODE_VALUE: 지역 코드/이름
 
         장애인도서관 API 필드:
         - LBRRY_NAME: 도서관명
         - ADRES: 주소
         - TEL: 전화번호
         - FDRM_CLOSE_DATE: 정기휴관일
-        - XCNTS: X좌표
-        - YDNTS: Y좌표
+        - XCNTS: 위도 (latitude)
+        - YDNTS: 경도 (longitude)
         - FCODE_NM: 지역명
 
         Args:
@@ -74,11 +74,12 @@ class LibrariesCollector(BaseCollector):
             # API ID: 도서관명 해시
             api_id = hashlib.md5(name.encode()).hexdigest()
 
-            # 좌표 변환 (공공도서관: LAT/LNG, 장애인도서관: XCNTS/YDNTS)
-            lat_str = record.get('LAT') or record.get('YDNTS')
-            lon_str = record.get('LNG') or record.get('XCNTS')
+            # 좌표 변환 (공공도서관: XCNTS(위도)/YDNTS(경도), 장애인도서관: XCNTS/YDNTS)
+            # 공공도서관과 장애인도서관 모두 XCNTS=위도, YDNTS=경도 사용
+            xcnts_str = record.get('XCNTS')  # Latitude (위도)
+            ydnts_str = record.get('YDNTS')  # Longitude (경도)
 
-            lat, lon = self.transform_coordinates(lat_str, lon_str)
+            lat, lon = self.transform_coordinates(xcnts_str, ydnts_str, swap=False)
 
             # 변환된 레코드 (Supabase 스키마 컬럼명에 정확히 매칭)
             transformed = {
