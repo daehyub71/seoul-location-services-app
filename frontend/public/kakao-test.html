@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Kakao Map Test</title>
+</head>
+<body>
+    <h1>Kakao Map API Test</h1>
+    <div id="map" style="width:500px;height:400px;"></div>
+
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=bee1c4ce2fc41371e2af10c50fd5abb1"></script>
+    <script>
+        console.log('Kakao object:', window.kakao);
+        console.log('Kakao maps:', window.kakao ? window.kakao.maps : 'undefined');
+
+        if (window.kakao && window.kakao.maps) {
+            var container = document.getElementById('map');
+            var options = {
+                center: new kakao.maps.LatLng(37.5665, 126.978),
+                level: 3
+            };
+            var map = new kakao.maps.Map(container, options);
+            console.log('Map created successfully!');
+            document.body.innerHTML += '<p style="color: green;">✅ 지도 로드 성공!</p>';
+        } else {
+            console.error('Kakao Maps API not loaded');
+            document.body.innerHTML += '<p style="color: red;">❌ Kakao Maps API 로드 실패</p>';
+            document.body.innerHTML += '<p>콘솔(F12)을 열어서 에러 메시지를 확인하세요.</p>';
+        }
+    </script>
+</body>
+</html>
