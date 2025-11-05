@@ -6,28 +6,6 @@
       "destination": "/api/index"
     }
   ],
-  "env": {
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_KEY": "@supabase_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
-    "SUPABASE_DATABASE_URL": "@supabase_database_url",
-    "UPSTASH_URL": "@upstash_url",
-    "UPSTASH_TOKEN": "@upstash_token",
-    "REDIS_URL": "@redis_url",
-    "SEOUL_API_KEY": "@seoul_api_key",
-    "SEOUL_API_BASE_URL": "http://openapi.seoul.go.kr:8088",
-    "KAKAO_REST_API_KEY": "@kakao_rest_api_key",
-    "ENVIRONMENT": "production",
-    "LOG_LEVEL": "INFO",
-    "API_VERSION": "v1",
-    "REDIS_CACHE_TTL": "300",
-    "CACHE_ENABLED": "true",
-    "COLLECTION_SCHEDULE_ENABLED": "false",
-    "COLLECTION_RETRY_COUNT": "3",
-    "COLLECTION_TIMEOUT": "30",
-    "RATE_LIMIT_ENABLED": "true",
-    "RATE_LIMIT_PER_MINUTE": "100"
-  },
   "regions": ["icn1"],
   "functions": {
     "api/index.py": {
