@@ -147,12 +147,37 @@ npm run dev
 
 ## 개발 일정
 
-- **Week 1** (Day 1-7): 데이터 수집 파이프라인 구축
-- **Week 2** (Day 8-14): Backend API 개발 (LangGraph)
-- **Week 3** (Day 15-21): Frontend 개발 (React + Kakao Map)
-- **Week 4** (Day 22-28): 통합 테스트 및 배포
+- **Week 1** (Day 1-7): 데이터 수집 파이프라인 구축 ✅
+- **Week 2** (Day 8-14): Backend API 개발 (LangGraph) ✅
+- **Week 3** (Day 15-21): Frontend 개발 (React + Kakao Map) ✅
+- **Week 4** (Day 22-28): 통합 테스트 및 배포 🚧
 
 자세한 일정은 [PROJECT_PLAN.md](./PROJECT_PLAN.md)를 참고하세요.
+
+## Vercel 배포 가이드
+
+Vercel에 배포하는 방법에 대한 완전한 가이드를 제공합니다:
+
+### 📚 배포 문서
+
+- **[Vercel 배포 가이드 (한글)](./VERCEL_DEPLOYMENT_GUIDE_KR.md)** - 단계별 배포 절차, 문제 해결, 최적화
+- **[환경 변수 설정 가이드 (한글)](./VERCEL_ENV_VARIABLES_KR.md)** - 모든 환경 변수 목록 및 발급 방법
+- **[Deployment Guide (English)](./VERCEL_DEPLOYMENT_GUIDE.md)** - Step-by-step deployment procedures
+- **[Environment Variables (English)](./VERCEL_ENV_VARIABLES.md)** - All environment variables setup
+
+### ⚡ 빠른 시작
+
+```bash
+# 1. Backend 배포
+cd backend
+vercel --prod
+
+# 2. Frontend 배포
+cd frontend
+vercel --prod
+```
+
+자세한 내용은 [배포 가이드](./VERCEL_DEPLOYMENT_GUIDE_KR.md)를 참고하세요.
 
 ## API 문서
 
