@@ -117,31 +117,43 @@ export async function getNearbyServices(
   // Transform backend response to match frontend types
   const backendData = response.data
 
-  // Map backend "locations" to frontend "services"
-  const services = (backendData.locations || []).map((location: any) => {
-    // Handle different coordinate field names across categories
-    // public_reservations: x, y
-    // cultural_events: lot, lat
-    // others: latitude, longitude or lat, lon
+  // Map backend "services" to frontend format
+  const services = (backendData.services || []).map((serviceItem: any) => {
+    // Backend structure:
+    // {
+    //   id, title, category, category_label, icon,
+    //   location: { lat, lon, distance },
+    //   address, description, raw_data
+    // }
+
     let latitude: number
     let longitude: number
 
-    // Try to get coordinates from various field names
-    if (location.y !== undefined && location.y !== null) {
-      latitude = parseFloat(location.y)
-      longitude = parseFloat(location.x)
-    } else if (location.lat !== undefined && location.lat !== null) {
-      latitude = parseFloat(location.lat)
-      longitude = parseFloat(location.lon !== undefined ? location.lon : location.lot)
+    // Try to get coordinates from location object or raw_data
+    if (serviceItem.location) {
+      latitude = parseFloat(serviceItem.location.lat)
+      longitude = parseFloat(serviceItem.location.lon)
+    } else if (serviceItem.raw_data) {
+      const raw = serviceItem.raw_data
+      if (raw.y !== undefined && raw.y !== null) {
+        latitude = parseFloat(raw.y)
+        longitude = parseFloat(raw.x)
+      } else if (raw.lat !== undefined && raw.lat !== null) {
+        latitude = parseFloat(raw.lat)
+        longitude = parseFloat(raw.lon !== undefined ? raw.lon : raw.lot)
+      } else {
+        latitude = parseFloat(raw.latitude)
+        longitude = parseFloat(raw.longitude)
+      }
     } else {
-      latitude = parseFloat(location.latitude)
-      longitude = parseFloat(location.longitude)
+      latitude = 0
+      longitude = 0
     }
 
     // Validate coordinates
     if (isNaN(latitude) || isNaN(longitude)) {
-      console.warn('[API] Invalid coordinates for location', {
-        location,
+      console.warn('[API] Invalid coordinates for service', {
+        service: serviceItem,
         parsedLat: latitude,
         parsedLon: longitude
       })
@@ -150,23 +162,29 @@ export async function getNearbyServices(
     }
 
     const service: any = {
-      id: location.id || location.api_id,
-      category: mapTableToCategory(location._table || location.data_source),
-      name: location.title || location.name || location.lbrry_name || location.fac_name || location.svcnm,
+      id: serviceItem.id,
+      category: serviceItem.category,
+      name: serviceItem.title,
       latitude,
       longitude,
-      address: location.address || location.adres || location.place,
-      distance: location.distance,
-      // Preserve original coordinate fields for InfoWindow display
-      ...location,
+      address: serviceItem.address,
+      distance: serviceItem.location?.distance,
+      description: serviceItem.description,
+      icon: serviceItem.icon,
+      category_label: serviceItem.category_label,
+      // Preserve raw data for InfoWindow
+      raw_data: serviceItem.raw_data,
     }
 
-    // Add category-specific fields
-    if (location._table === 'cultural_events' || location.data_source === 'culturalEventInfo') {
-      service.event_period = location.strtdate && location.end_date
-        ? `${location.strtdate} ~ ${location.end_date}`
-        : undefined
-      service.use_fee = location.use_fee || location.is_free
+    // Add category-specific fields from raw_data
+    if (serviceItem.raw_data) {
+      const raw = serviceItem.raw_data
+      if (raw.strtdate && raw.end_date) {
+        service.event_period = `${raw.strtdate} ~ ${raw.end_date}`
+      }
+      service.use_fee = raw.use_fee || raw.is_free
+      service.operating_hours = raw.opertime
+      service.homepage = raw.homepage || raw.hmpg_addr || raw.org_link
     }
 
     return service
