@@ -439,6 +439,42 @@ open https://your-frontend.vercel.app
 
 ### 일반적인 Backend 문제
 
+#### 문제: FUNCTION_INVOCATION_FAILED (Function Crash)
+
+**증상:**
+- "This Serverless Function has crashed" 에러
+- "FUNCTION_INVOCATION_FAILED" 메시지
+- "Python process exited with exit status: 1"
+
+**원인:**
+- 잘못된 handler 형식 사용 (예: AWS Lambda 형식)
+- Vercel은 ASGI/WSGI `app` 변수 또는 `BaseHTTPRequestHandler` 클래스 필요
+
+**해결책:**
+```python
+# ❌ 잘못된 방식 (AWS Lambda 형식)
+def handler(event, context):
+    return {'statusCode': 200, 'body': '...'}
+
+# ❌ 잘못된 방식 (Mangum 사용)
+from mangum import Mangum
+handler = Mangum(app)
+
+# ✅ 올바른 방식 (FastAPI의 경우)
+from fastapi import FastAPI
+
+app = FastAPI()  # Vercel이 자동으로 인식
+
+@app.get("/")
+def root():
+    return {"message": "Hello"}
+```
+
+**핵심:**
+- Vercel은 ASGI 앱을 **자동 감지**하므로 Mangum 불필요
+- `app` 변수를 export하기만 하면 됨
+- requirements.txt에서 mangum 제거
+
 #### 문제: 500 Internal Server Error
 
 **증상:**

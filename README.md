@@ -151,8 +151,19 @@ npm run dev
 - **Week 2** (Day 8-14): Backend API 개발 (LangGraph) ✅
 - **Week 3** (Day 15-21): Frontend 개발 (React + Kakao Map) ✅
 - **Week 4** (Day 22-28): 통합 테스트 및 배포 🚧
+  - **Day 22**: Backend 기본 배포 완료 ✅
 
 자세한 일정은 [PROJECT_PLAN.md](./PROJECT_PLAN.md)를 참고하세요.
+
+## 배포 상태
+
+### Backend (Vercel Serverless)
+- 🟢 **Production**: https://seoul-location-services-backend-2t2o5qmt2-daehyub71s-projects.vercel.app
+- 상태: 정상 작동
+- API 문서: https://seoul-location-services-backend-2t2o5qmt2-daehyub71s-projects.vercel.app/docs
+
+### Frontend (Vercel Static)
+- 🔴 **배포 예정**
 
 ## Vercel 배포 가이드
 
