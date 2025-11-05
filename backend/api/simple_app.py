@@ -29,7 +29,8 @@ CORS_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8501",
     "https://seoul-location-services.vercel.app",
-    "https://*.vercel.app",
+    "https://seoul-location-services-frontend.vercel.app",
+    "https://seoul-location-services-frontend-k4mlsduzj-daehyub71s-projects.vercel.app",
 ]
 
 app.add_middleware(
@@ -38,6 +39,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Allow all Vercel preview deployments
+    allow_origin_regex=r"https://.*\.vercel\.app",
 )
 
 
