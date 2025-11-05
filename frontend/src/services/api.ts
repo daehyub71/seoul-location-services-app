@@ -119,14 +119,46 @@ export async function getNearbyServices(
 
   // Map backend "locations" to frontend "services"
   const services = (backendData.locations || []).map((location: any) => {
+    // Handle different coordinate field names across categories
+    // public_reservations: x, y
+    // cultural_events: lot, lat
+    // others: latitude, longitude or lat, lon
+    let latitude: number
+    let longitude: number
+
+    // Try to get coordinates from various field names
+    if (location.y !== undefined && location.y !== null) {
+      latitude = parseFloat(location.y)
+      longitude = parseFloat(location.x)
+    } else if (location.lat !== undefined && location.lat !== null) {
+      latitude = parseFloat(location.lat)
+      longitude = parseFloat(location.lon !== undefined ? location.lon : location.lot)
+    } else {
+      latitude = parseFloat(location.latitude)
+      longitude = parseFloat(location.longitude)
+    }
+
+    // Validate coordinates
+    if (isNaN(latitude) || isNaN(longitude)) {
+      console.warn('[API] Invalid coordinates for location', {
+        location,
+        parsedLat: latitude,
+        parsedLon: longitude
+      })
+      latitude = 0
+      longitude = 0
+    }
+
     const service: any = {
       id: location.id || location.api_id,
       category: mapTableToCategory(location._table || location.data_source),
       name: location.title || location.name || location.lbrry_name || location.fac_name || location.svcnm,
-      latitude: location.lat || location.latitude,
-      longitude: location.lon || location.longitude || location.lot,
+      latitude,
+      longitude,
       address: location.address || location.adres || location.place,
       distance: location.distance,
+      // Preserve original coordinate fields for InfoWindow display
+      ...location,
     }
 
     // Add category-specific fields

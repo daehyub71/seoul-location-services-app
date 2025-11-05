@@ -11,6 +11,7 @@ interface KakaoMapProps {
   onServiceClick?: (service: AnyService) => void
   onMapClick?: (latitude: number, longitude: number) => void
   userLocation?: { latitude: number; longitude: number } | null
+  selectedService?: AnyService | null
   className?: string
 }
 
@@ -19,6 +20,7 @@ export default function KakaoMap({
   onServiceClick,
   onMapClick,
   userLocation: propUserLocation,
+  selectedService,
   className = '',
 }: KakaoMapProps) {
   const { userLocation: storeUserLocation } = useLocationStore()
@@ -39,7 +41,7 @@ export default function KakaoMap({
       latitude: 37.5665, // Seoul City Hall
       longitude: 126.978,
     },
-    initialZoom: 6, // 더 확대된 상태로 시작 (숫자가 작을수록 더 확대)
+    initialZoom: 5, // 적당히 확대된 상태 (1=최대확대, 14=최대축소)
     onMapClick,
     enabled: true, // Container is always in DOM now
   })
@@ -93,8 +95,9 @@ export default function KakaoMap({
           map={map}
           services={services}
           userLocation={currentLocation || userLocation}
-          clusterThreshold={500}
+          clusterThreshold={0}
           onServiceClick={onServiceClick}
+          selectedService={selectedService}
         />
       )}
 

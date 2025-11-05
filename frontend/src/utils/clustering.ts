@@ -34,7 +34,7 @@ export function calculateDistance(
 /**
  * Cluster services based on distance threshold
  * @param services - Array of services to cluster
- * @param threshold - Distance threshold in meters (default: 1000m = 1km)
+ * @param threshold - Distance threshold in meters (default: 1000m = 1km). Set to 0 to disable clustering.
  * @returns Array of clusters
  */
 export function clusterServices(
@@ -42,6 +42,17 @@ export function clusterServices(
   threshold = 1000
 ): MarkerCluster[] {
   if (services.length === 0) return []
+
+  // If threshold is 0, return all services as individual markers (no clustering)
+  if (threshold === 0) {
+    return services.map((service) => ({
+      id: service.id,
+      latitude: service.latitude,
+      longitude: service.longitude,
+      services: [service],
+      isCluster: false,
+    }))
+  }
 
   const clusters: MarkerCluster[] = []
   const visited = new Set<string>()

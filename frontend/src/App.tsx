@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import KakaoMap from '@/components/map/KakaoMap'
 import ResponsivePanel from '@/components/layout/ResponsivePanel'
 import LocationInput from '@/components/location/LocationInput'
@@ -103,16 +103,18 @@ function App() {
   )
 
   // Use API data if available, otherwise use mock data
-  const services = servicesData?.data?.services || mockServices
+  // Memoize to prevent unnecessary marker recreation
+  const services = useMemo(() => {
+    return servicesData?.data?.services || mockServices
+  }, [servicesData?.data?.services])
 
   const handleServiceClick = (service: AnyService) => {
-    console.log('Service clicked:', service)
     setSelectedService(service)
-    setDetailModalOpen(true)
+    // Don't open modal - InfoWindow will be shown on map instead
+    // setDetailModalOpen(true)
   }
 
-  const handleMapClick = (latitude: number, longitude: number) => {
-    console.log('Map clicked:', { latitude, longitude })
+  const handleMapClick = (_latitude: number, _longitude: number) => {
     // Optionally clear selection
     // setSelectedService(null)
   }
@@ -202,6 +204,7 @@ function App() {
             onServiceClick={handleServiceClick}
             onMapClick={handleMapClick}
             userLocation={activeLocation}
+            selectedService={selectedService}
             className="w-full h-full"
           />
         </div>

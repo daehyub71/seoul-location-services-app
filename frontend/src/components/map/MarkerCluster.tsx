@@ -1,9 +1,15 @@
 import { useEffect, useRef } from 'react'
 import type { AnyService } from '@/types/services'
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/services'
-import type { KakaoMap } from '@/services/kakao'
-import { createLatLng, createMarker, createCategoryMarkerImage } from '@/services/kakao'
-import { clusterServices, getDominantCategory, calculateDistance, formatDistance } from '@/utils/clustering'
+import { CATEGORY_COLORS } from '@/types/services'
+import type { KakaoMap, KakaoInfoWindow } from '@/services/kakao'
+import {
+  createLatLng,
+  createMarker,
+  createCategoryMarkerImage,
+  createInfoWindow,
+  createServiceInfoWindowContent
+} from '@/services/kakao'
+import { clusterServices, getDominantCategory } from '@/utils/clustering'
 
 interface MarkerClusterProps {
   map: KakaoMap | null
@@ -11,6 +17,7 @@ interface MarkerClusterProps {
   userLocation?: { latitude: number; longitude: number } | null
   clusterThreshold?: number
   onServiceClick?: (service: AnyService) => void
+  selectedService?: AnyService | null
 }
 
 export default function MarkerCluster({
@@ -19,9 +26,32 @@ export default function MarkerCluster({
   userLocation,
   clusterThreshold = 1000,
   onServiceClick,
+  selectedService,
 }: MarkerClusterProps) {
-  const markersRef = useRef<any[]>([])
-  const overlayRef = useRef<any>(null)
+  const markersRef = useRef<Array<{ service: AnyService; marker: any }>>([])
+  const clusterOverlaysRef = useRef<any[]>([])
+  const infoWindowRef = useRef<KakaoInfoWindow | null>(null)
+
+  // Add map click listener to close InfoWindow
+  useEffect(() => {
+    if (!map || !window.kakao) return
+
+    const handleMapClick = () => {
+      if (infoWindowRef.current) {
+        console.log('[MarkerCluster] Map clicked - closing InfoWindow')
+        infoWindowRef.current.close()
+        infoWindowRef.current = null
+      }
+    }
+
+    // Add click listener to map
+    window.kakao.maps.event.addListener(map, 'click', handleMapClick)
+
+    // Cleanup
+    return () => {
+      window.kakao.maps.event.removeListener(map, 'click', handleMapClick)
+    }
+  }, [map])
 
   // Update markers when services change
   useEffect(() => {
@@ -33,17 +63,25 @@ export default function MarkerCluster({
     console.log('[MarkerCluster] Starting marker update', { servicesCount: services.length })
 
     // Clear existing markers
-    markersRef.current.forEach((marker) => {
+    markersRef.current.forEach(({ marker }) => {
       if (marker && marker.setMap) {
         marker.setMap(null)
       }
     })
     markersRef.current = []
 
-    // Clear existing overlay
-    if (overlayRef.current) {
-      overlayRef.current.setMap(null)
-      overlayRef.current = null
+    // Clear existing cluster overlays
+    clusterOverlaysRef.current.forEach((overlay) => {
+      if (overlay && overlay.setMap) {
+        overlay.setMap(null)
+      }
+    })
+    clusterOverlaysRef.current = []
+
+    // Clear existing infoWindow
+    if (infoWindowRef.current) {
+      infoWindowRef.current.close()
+      infoWindowRef.current = null
     }
 
     // Cluster services
@@ -96,12 +134,14 @@ export default function MarkerCluster({
         console.log('[MarkerCluster] Cluster marker added to map')
 
         // Add click handler
-        content.addEventListener('click', () => {
+        content.addEventListener('click', (e) => {
+          e.stopPropagation() // Prevent map click event
           map.setCenter(position)
           map.setLevel(Math.max(1, map.getLevel() - 2), { animate: true })
         })
 
-        markersRef.current.push(customOverlay)
+        // Track cluster overlay for cleanup
+        clusterOverlaysRef.current.push(customOverlay)
       } else {
         // Create single marker
         const service = cluster.services[0]
@@ -126,120 +166,30 @@ export default function MarkerCluster({
 
         // Add click handler
         window.kakao.maps.event.addListener(marker, 'click', () => {
-          // Close previous overlay
-          if (overlayRef.current) {
-            overlayRef.current.setMap(null)
+          console.log('[MarkerCluster] Marker clicked', { service: service.name, category: service.category })
+
+          // Close previous infoWindow
+          if (infoWindowRef.current) {
+            infoWindowRef.current.close()
           }
 
-          // Calculate distance
-          const distance = userLocation
-            ? calculateDistance(
-                userLocation.latitude,
-                userLocation.longitude,
-                service.latitude,
-                service.longitude
-              )
-            : undefined
+          // Create InfoWindow with all API data
+          const content = createServiceInfoWindowContent(service)
 
-          // Create overlay content
-          const categoryColor = CATEGORY_COLORS[service.category]
-          const categoryLabel = CATEGORY_LABELS[service.category]
-          const distanceText = distance ? formatDistance(distance) : ''
-
-          const overlayContent = document.createElement('div')
-          overlayContent.style.cssText = `
-            background: white;
-            border: 2px solid ${categoryColor};
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            min-width: 250px;
-            max-width: 300px;
-          `
-          overlayContent.innerHTML = `
-            <div style="
-              background: ${categoryColor}15;
-              padding: 12px;
-              border-radius: 6px 6px 0 0;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="
-                  width: 12px;
-                  height: 12px;
-                  border-radius: 50%;
-                  background: ${categoryColor};
-                "></div>
-                <span style="
-                  color: ${categoryColor};
-                  font-weight: 600;
-                  font-size: 14px;
-                ">${categoryLabel}</span>
-              </div>
-              <button
-                style="
-                  background: none;
-                  border: none;
-                  cursor: pointer;
-                  padding: 4px;
-                  font-size: 20px;
-                  line-height: 1;
-                  color: #666;
-                "
-                onclick="this.closest('div').parentElement.remove()"
-              >×</button>
-            </div>
-            <div style="padding: 12px;">
-              <h3 style="
-                font-weight: bold;
-                font-size: 16px;
-                margin: 0 0 8px 0;
-                color: #111;
-              ">${service.name}</h3>
-              ${distanceText ? `
-                <div style="
-                  font-size: 14px;
-                  color: #666;
-                  margin-bottom: 8px;
-                ">📍 ${distanceText}</div>
-              ` : ''}
-              ${(service as any).address ? `
-                <p style="
-                  font-size: 13px;
-                  color: #666;
-                  margin: 0 0 8px 0;
-                  line-height: 1.4;
-                ">${(service as any).address}</p>
-              ` : ''}
-              <button
-                style="
-                  width: 100%;
-                  padding: 8px 16px;
-                  background: ${categoryColor};
-                  color: white;
-                  border: none;
-                  border-radius: 4px;
-                  font-weight: 500;
-                  cursor: pointer;
-                  font-size: 14px;
-                "
-              >상세보기</button>
-            </div>
-          `
-
-          const overlay = new window.kakao.maps.CustomOverlay({
-            position,
-            content: overlayContent,
-            yAnchor: 1,
+          const infoWindow = createInfoWindow({
+            content,
+            removable: true,
             zIndex: 1000,
           })
 
-          overlay.setMap(map)
-          overlayRef.current = overlay
+          // Open InfoWindow
+          infoWindow.open(map, marker)
+          infoWindowRef.current = infoWindow
 
-          // Pan to marker
-          map.panTo(position)
+          console.log('[MarkerCluster] InfoWindow opened (no map movement)')
+
+          // Don't pan to marker - just show InfoWindow
+          // map.panTo(position)
 
           // Call parent handler
           if (onServiceClick) {
@@ -247,22 +197,109 @@ export default function MarkerCluster({
           }
         })
 
-        markersRef.current.push(marker)
+        markersRef.current.push({ service, marker })
       }
     })
 
     // Cleanup on unmount
     return () => {
-      markersRef.current.forEach((marker) => {
+      markersRef.current.forEach(({ marker }) => {
         if (marker && marker.setMap) {
           marker.setMap(null)
         }
       })
-      if (overlayRef.current) {
-        overlayRef.current.setMap(null)
+      clusterOverlaysRef.current.forEach((overlay) => {
+        if (overlay && overlay.setMap) {
+          overlay.setMap(null)
+        }
+      })
+      if (infoWindowRef.current) {
+        infoWindowRef.current.close()
       }
     }
   }, [map, services, clusterThreshold, userLocation, onServiceClick])
+
+  // Handle selectedService change - open InfoWindow for selected service
+  useEffect(() => {
+    if (!map || !selectedService) return
+
+    console.log('[MarkerCluster] Selected service changed', {
+      service: selectedService.name,
+      latitude: selectedService.latitude,
+      longitude: selectedService.longitude,
+      id: selectedService.id
+    })
+
+    // Find marker for selected service
+    const markerData = markersRef.current.find(({ service }) => service.id === selectedService.id)
+
+    // Close previous infoWindow
+    if (infoWindowRef.current) {
+      infoWindowRef.current.close()
+    }
+
+    if (!markerData) {
+      console.log('[MarkerCluster] Marker not found for selected service (might be in cluster)', {
+        serviceId: selectedService.id,
+        latitude: selectedService.latitude,
+        longitude: selectedService.longitude
+      })
+
+      // Validate coordinates
+      if (!selectedService.latitude || !selectedService.longitude ||
+          isNaN(selectedService.latitude) || isNaN(selectedService.longitude)) {
+        console.error('[MarkerCluster] Invalid coordinates for selected service', {
+          latitude: selectedService.latitude,
+          longitude: selectedService.longitude,
+          service: selectedService
+        })
+        return
+      }
+
+      // Service is in a cluster - create InfoWindow at service position
+      const position = createLatLng(selectedService.latitude, selectedService.longitude)
+      const content = createServiceInfoWindowContent(selectedService)
+
+      const infoWindow = createInfoWindow({
+        content,
+        removable: true,
+        zIndex: 1000,
+      })
+
+      // Open InfoWindow at position (without marker)
+      infoWindow.open(map)
+      infoWindow.setPosition(position)
+      infoWindowRef.current = infoWindow
+
+      // Don't move map - just show InfoWindow
+      // map.panTo(position)
+      // map.setLevel(Math.max(1, map.getLevel() - 1), { animate: true })
+
+      console.log('[MarkerCluster] InfoWindow opened at service position (no map movement)')
+      return
+    }
+
+    const { service, marker } = markerData
+
+    // Create InfoWindow with all API data
+    const content = createServiceInfoWindowContent(service)
+
+    const infoWindow = createInfoWindow({
+      content,
+      removable: true,
+      zIndex: 1000,
+    })
+
+    // Open InfoWindow
+    infoWindow.open(map, marker)
+    infoWindowRef.current = infoWindow
+
+    console.log('[MarkerCluster] InfoWindow opened for selected service (no map movement)')
+
+    // Don't move map - just show InfoWindow
+    // const position = createLatLng(service.latitude, service.longitude)
+    // map.panTo(position)
+  }, [map, selectedService])
 
   return null
 }
