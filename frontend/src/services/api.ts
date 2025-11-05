@@ -206,20 +206,6 @@ export async function getNearbyServices(
   }
 }
 
-// Helper function to map backend table names to frontend categories
-function mapTableToCategory(tableName: string): string {
-  const mapping: Record<string, string> = {
-    'cultural_events': 'cultural_events',
-    'culturalEventInfo': 'cultural_events',
-    'libraries': 'libraries',
-    'library': 'libraries',
-    'cultural_spaces': 'cultural_spaces',
-    'public_reservations': 'public_reservations',
-    'future_heritage': 'future_heritage',
-  }
-  return mapping[tableName] || 'cultural_events'
-}
-
 /**
  * Get services by category
  */
