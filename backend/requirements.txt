@@ -24,9 +24,6 @@ langchain-community==0.0.13
 langgraph==0.0.20
 langchain-core==0.1.10
 
-# Ollama (Optional - for local LLM)
-ollama==0.1.6
-
 # Geospatial
 pyproj==3.6.1
 shapely==2.0.2
@@ -36,38 +33,13 @@ geopy==2.4.1
 pandas==2.1.4
 numpy==1.26.3
 
-# Scheduling
-apscheduler==3.10.4
-
-# Progress Bar
-tqdm==4.66.1
-
 # XML Parsing
 xmltodict==0.13.0
 lxml==5.1.0
 
-# Firebase (Optional - for backup)
-firebase-admin==6.4.0
-
 # Logging & Monitoring
 python-json-logger==2.0.7
 sentry-sdk==1.40.0
-
-# Testing
-pytest==7.4.4
-pytest-asyncio==0.23.3
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-httpx-mock==0.7.0
-
-# Development Tools
-black==23.12.1
-flake8==7.0.0
-mypy==1.8.0
-isort==5.13.2
-
-# Performance Testing
-locust==2.20.0
 
 # Environment Variables
 python-dotenv==1.0.0

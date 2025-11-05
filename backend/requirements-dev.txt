@@ -1,0 +1,30 @@
+# Development requirements (includes production requirements + dev/test tools)
+-r requirements.txt
+
+# Ollama (Optional - for local LLM)
+ollama==0.1.6
+
+# Scheduling (for local development)
+apscheduler==3.10.4
+
+# Progress Bar
+tqdm==4.66.1
+
+# Firebase (Optional - for backup)
+firebase-admin==6.4.0
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+httpx-mock==0.7.0
+
+# Development Tools
+black==23.12.1
+flake8==7.0.0
+mypy==1.8.0
+isort==5.13.2
+
+# Performance Testing
+locust==2.20.0
