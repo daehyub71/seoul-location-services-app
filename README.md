@@ -4,11 +4,11 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.2-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-In%20Development-orange)](https://github.com/daehyub71/seoul-location-services-app)
+[![Status](https://img.shields.io/badge/Status-Production-brightgreen)](https://seoul-location-services-frontend-11lsowy1g-daehyub71s-projects.vercel.app)
 
 > 서울시 공공 서비스를 한눈에! 위치 기반 문화·교육·의료 정보 통합 플랫폼
 
-**🚧 현재 개발 중 (Week 1 - Day 1 완료)** | [개발 일정](./DEVELOPMENT_TIMELINE.md) | [프로젝트 계획](./PROJECT_PLAN.md)
+**🚀 Production 배포 완료 (Week 4 - Day 22)** | [개발 일정](./DEVELOPMENT_TIMELINE.md) | [프로젝트 계획](./PROJECT_PLAN.md)
 
 ## 프로젝트 소개
 
@@ -158,10 +158,11 @@ npm run dev
 ## 배포 상태
 
 ### Backend (Vercel Serverless)
-- 🟢 **Production**: https://seoul-location-services-backend-9ps6q7kbq-daehyub71s-projects.vercel.app
+- 🟢 **Production**: https://seoul-location-services-backend-1um0gnhuv-daehyub71s-projects.vercel.app
 - 상태: 정상 작동 ✅
-- API 문서: https://seoul-location-services-backend-9ps6q7kbq-daehyub71s-projects.vercel.app/docs
+- API 문서: https://seoul-location-services-backend-1um0gnhuv-daehyub71s-projects.vercel.app/docs
 - 버전: Serverless-optimized (without LangGraph for fast cold starts)
+- 데이터: Supabase PostgreSQL (280+ services)
 
 **Available Endpoints:**
 - `GET /` - API 정보
@@ -171,7 +172,10 @@ npm run dev
 - `GET /api/v1/services/nearby` - 근처 서비스 검색 (lat, lon, radius)
 
 ### Frontend (Vercel Static)
-- 🔴 **배포 예정**
+- 🟢 **Production**: https://seoul-location-services-frontend-11lsowy1g-daehyub71s-projects.vercel.app
+- 상태: 정상 작동 ✅
+- 기능: Kakao Map 시각화, 서비스 목록, 거리 정렬, 필터링
+- 연동: Backend API 통합 완료
 
 ## Vercel 배포 가이드
 

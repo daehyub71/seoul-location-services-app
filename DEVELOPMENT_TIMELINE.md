@@ -955,15 +955,34 @@
   - CI/CD 설정 방법
   - 성능 최적화 팁
 
-**다음 단계 (실제 배포)**:
-1. Supabase 프로젝트 생성 및 환경 변수 설정
-2. Upstash Redis 인스턴스 생성
-3. 서울 Open API 키 발급
-4. Kakao Developer 계정 및 API 키 발급
-5. `cd backend && vercel --prod` 실행
-6. `cd frontend && vercel --prod` 실행
-7. Frontend 환경 변수에 Backend URL 설정
-8. 배포 검증 및 모니터링
+**실제 배포 완료**:
+- ✅ Backend Serverless 최적화
+  - `api/simple_app.py` 작성 (LangGraph 제거, 빠른 cold start)
+  - Supabase 데이터베이스 연결 (cultural_events, libraries)
+  - Haversine 거리 계산 알고리즘 구현
+  - CORS regex 패턴 설정 (모든 Vercel 배포 허용)
+- ✅ Backend Production 배포
+  - URL: https://seoul-location-services-backend-1um0gnhuv-daehyub71s-projects.vercel.app
+  - 환경변수: Supabase, Upstash, Seoul API, Kakao API 설정 완료
+  - API 엔드포인트 테스트 완료 (280개 서비스 조회 성공)
+- ✅ Frontend Production 배포
+  - URL: https://seoul-location-services-frontend-11lsowy1g-daehyub71s-projects.vercel.app
+  - 환경변수: VITE_API_BASE_URL, VITE_KAKAO_MAP_API_KEY 설정 완료
+  - API 응답 매핑 수정 (backendData.services 구조 대응)
+- ✅ 통합 테스트 완료
+  - 서비스 목록 조회 정상 작동
+  - 카카오 맵 마커 표시 정상 작동
+  - 거리 기준 정렬 정상 작동
+  - 카테고리 필터링 정상 작동
+
+**배포 통계**:
+- 총 배포 횟수: Backend 7회, Frontend 5회
+- 해결된 이슈:
+  - CORS 설정 오류 (regex 패턴 추가)
+  - 환경변수 Secret 참조 오류 (vercel.json에서 env 섹션 제거)
+  - API 응답 구조 불일치 (locations → services)
+  - Mangum 불필요 (Vercel 자체 ASGI 지원)
+  - TypeScript 빌드 오류 (미사용 함수 제거)
 
 ---
 
