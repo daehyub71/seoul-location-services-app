@@ -1,19 +1,15 @@
 """
-Vercel Serverless Function Handler with Mangum adapter
+Vercel Serverless Function Handler - Minimal Test
 """
 
-from fastapi import FastAPI
-from mangum import Mangum
-
-app = FastAPI()
-
-@app.get("/")
-def root():
-    return {"status": "ok", "message": "FastAPI with Mangum works!"}
-
-@app.get("/health")
-def health():
-    return {"status": "healthy"}
-
-# Use Mangum adapter for serverless deployment
-handler = Mangum(app)
+def handler(event, context):
+    """
+    Bare-bones Lambda-compatible handler for testing
+    """
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'application/json',
+        },
+        'body': '{"status": "ok", "message": "Basic handler works!"}'
+    }
