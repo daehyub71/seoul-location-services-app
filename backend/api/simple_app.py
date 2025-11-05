@@ -4,15 +4,58 @@ Without LangGraph/heavy dependencies for fast cold starts
 """
 
 import os
+import math
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional, List, Dict, Any
 import logging
+from supabase import create_client, Client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+# Supabase client (lazy initialization)
+_supabase_client: Optional[Client] = None
+
+
+def get_supabase() -> Client:
+    """Get or create Supabase client"""
+    global _supabase_client
+    if _supabase_client is None:
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_KEY")
+
+        if not supabase_url or not supabase_key:
+            raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set")
+
+        _supabase_client = create_client(supabase_url, supabase_key)
+        logger.info("Supabase client initialized")
+
+    return _supabase_client
+
+
+def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Calculate distance between two points using Haversine formula
+    Returns distance in meters
+    """
+    R = 6371000  # Earth radius in meters
+
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+
+    a = (math.sin(delta_lat / 2) ** 2 +
+         math.cos(lat1_rad) * math.cos(lat2_rad) *
+         math.sin(delta_lon / 2) ** 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    distance = R * c
+    return distance
 
 # Create FastAPI app
 app = FastAPI(
@@ -132,13 +175,7 @@ async def search_nearby_services(
     category: Optional[str] = Query(None, description="카테고리 필터"),
     limit: int = Query(50, ge=1, le=200, description="최대 결과 개수")
 ):
-    """
-    Search nearby services
-
-    Note: This is a placeholder endpoint for serverless deployment.
-    Full functionality requires database connection which will be added
-    after environment configuration is complete.
-    """
+    """Search nearby services"""
 
     # Validate input
     if not lat or not lon:
@@ -153,23 +190,99 @@ async def search_nearby_services(
                 detail="Geocoding service not yet configured. Please use lat/lon coordinates."
             )
 
-    # Return mock data for now
-    return {
-        "query": {
-            "location": {"lat": lat, "lon": lon},
-            "radius": radius,
-            "category": category,
-            "limit": limit
-        },
-        "summary": {
-            "total_found": 0,
-            "returned": 0,
-            "categories": {}
-        },
-        "services": [],
-        "message": "Database connection will be configured after deployment verification.",
-        "status": "placeholder"
-    }
+    try:
+        supabase = get_supabase()
+        all_services = []
+        categories_count = {}
+
+        # Define table mappings
+        table_configs = [
+            {
+                "name": "cultural_events",
+                "category": "cultural_events",
+                "label": "문화행사",
+                "lat_field": "lat",
+                "lon_field": "lot",
+                "icon": "🎭"
+            },
+            {
+                "name": "libraries",
+                "category": "libraries",
+                "label": "도서관",
+                "lat_field": "latitude",
+                "lon_field": "longitude",
+                "icon": "📚"
+            }
+        ]
+
+        # Fetch from each table
+        for table in table_configs:
+            # Skip if category filter doesn't match
+            if category and category != table["category"]:
+                continue
+
+            # Fetch all records from table
+            response = supabase.table(table["name"]).select("*").execute()
+
+            if response.data:
+                # Calculate distance and filter
+                for item in response.data:
+                    item_lat = item.get(table["lat_field"])
+                    item_lon = item.get(table["lon_field"])
+
+                    if item_lat and item_lon:
+                        distance = calculate_distance(lat, lon, item_lat, item_lon)
+
+                        if distance <= radius:
+                            # Format service data
+                            service = {
+                                "id": item.get("id", item.get("api_id")),
+                                "title": item.get("title") or item.get("library_name", "Unknown"),
+                                "category": table["category"],
+                                "category_label": table["label"],
+                                "icon": table["icon"],
+                                "location": {
+                                    "lat": item_lat,
+                                    "lon": item_lon,
+                                    "distance": round(distance, 1)
+                                },
+                                "address": item.get("address") or item.get("place", ""),
+                                "description": item.get("etc_desc") or item.get("facilities", ""),
+                                "raw_data": item
+                            }
+                            all_services.append(service)
+
+                            # Update category count
+                            cat_key = table["category"]
+                            categories_count[cat_key] = categories_count.get(cat_key, 0) + 1
+
+        # Sort by distance
+        all_services.sort(key=lambda x: x["location"]["distance"])
+
+        # Apply limit
+        all_services = all_services[:limit]
+
+        return {
+            "query": {
+                "location": {"lat": lat, "lon": lon},
+                "radius": radius,
+                "category": category,
+                "limit": limit
+            },
+            "summary": {
+                "total_found": len(all_services),
+                "returned": len(all_services),
+                "categories": categories_count
+            },
+            "services": all_services
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching services: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch services: {str(e)}"
+        )
 
 
 @app.get("/api/v1/geocode")
