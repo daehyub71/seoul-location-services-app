@@ -158,9 +158,17 @@ npm run dev
 ## 배포 상태
 
 ### Backend (Vercel Serverless)
-- 🟢 **Production**: https://seoul-location-services-backend-2t2o5qmt2-daehyub71s-projects.vercel.app
-- 상태: 정상 작동
-- API 문서: https://seoul-location-services-backend-2t2o5qmt2-daehyub71s-projects.vercel.app/docs
+- 🟢 **Production**: https://seoul-location-services-backend-9ps6q7kbq-daehyub71s-projects.vercel.app
+- 상태: 정상 작동 ✅
+- API 문서: https://seoul-location-services-backend-9ps6q7kbq-daehyub71s-projects.vercel.app/docs
+- 버전: Serverless-optimized (without LangGraph for fast cold starts)
+
+**Available Endpoints:**
+- `GET /` - API 정보
+- `GET /health` - 헬스 체크
+- `GET /api/v1/status` - API 상태
+- `GET /api/v1/services/categories` - 서비스 카테고리 목록
+- `GET /api/v1/services/nearby` - 근처 서비스 검색 (lat, lon, radius)
 
 ### Frontend (Vercel Static)
 - 🔴 **배포 예정**
