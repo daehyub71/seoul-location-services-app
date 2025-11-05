@@ -3,7 +3,6 @@ fastapi
 uvicorn[standard]
 pydantic
 pydantic-settings
-mangum
 
 # HTTP Client
 httpx

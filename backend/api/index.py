@@ -1,15 +1,23 @@
 """
-Vercel Serverless Function Handler - Minimal Test
+Vercel Serverless Function Handler
+Vercel expects either:
+1. A 'handler' class inheriting from BaseHTTPRequestHandler
+2. An 'app' variable for ASGI/WSGI frameworks (Flask, FastAPI, etc.)
 """
 
-def handler(event, context):
-    """
-    Bare-bones Lambda-compatible handler for testing
-    """
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-        },
-        'body': '{"status": "ok", "message": "Basic handler works!"}'
-    }
+from fastapi import FastAPI
+
+# Vercel will automatically detect and use this ASGI app
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "FastAPI on Vercel works!"}
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+@app.get("/api/test")
+def test():
+    return {"message": "Test endpoint working"}
