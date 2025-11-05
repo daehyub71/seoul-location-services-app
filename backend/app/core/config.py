@@ -69,7 +69,20 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:8501",
+        "https://seoul-location-services.vercel.app",
+        "https://*.vercel.app",  # Allow all Vercel preview deployments
     ]
+
+    # Optional: Allow custom CORS origins from environment
+    CORS_ORIGINS_EXTRA: Optional[str] = None  # Comma-separated list
+
+    def get_cors_origins(self) -> List[str]:
+        """Get all CORS origins including environment extras"""
+        origins = self.CORS_ORIGINS.copy()
+        if self.CORS_ORIGINS_EXTRA:
+            extras = [origin.strip() for origin in self.CORS_ORIGINS_EXTRA.split(',')]
+            origins.extend(extras)
+        return origins
 
     # Spatial Query Defaults
     DEFAULT_SEARCH_RADIUS: int = 2000  # meters
