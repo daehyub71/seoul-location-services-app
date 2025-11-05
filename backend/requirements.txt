@@ -1,51 +1,31 @@
-# FastAPI Framework
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-pydantic==2.5.3
-pydantic-settings==2.1.0
+# Core FastAPI (no version constraints for better compatibility)
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
 
 # HTTP Client
-httpx==0.26.0
-requests==2.31.0
+httpx
+requests
 
 # Database
-supabase==2.3.0
-postgrest==0.13.2
-psycopg2-binary==2.9.9
-sqlalchemy==2.0.25
+supabase
+sqlalchemy
 
 # Redis Cache
-redis==5.0.1
-upstash-redis==0.15.0
-
-# LangChain & LangGraph
-langchain==0.1.0
-langchain-community==0.0.13
-langgraph==0.0.20
-langchain-core==0.1.10
+redis
+upstash-redis
 
 # Geospatial
-pyproj==3.6.1
-shapely==2.0.2
-geopy==2.4.1
-
-# Data Processing
-pandas==2.1.4
-numpy==1.26.3
-
-# XML Parsing
-xmltodict==0.13.0
-lxml==5.1.0
-
-# Logging & Monitoring
-python-json-logger==2.0.7
-sentry-sdk==1.40.0
+pyproj
+shapely
+geopy
 
 # Environment Variables
-python-dotenv==1.0.0
+python-dotenv
 
 # CORS
-python-multipart==0.0.6
+python-multipart
 
 # Date & Time
-python-dateutil==2.8.2
+python-dateutil
