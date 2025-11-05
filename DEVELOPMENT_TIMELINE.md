@@ -907,28 +907,63 @@
 
 ### Week 4: 통합 및 배포 (Day 22-28)
 
-#### Day 22 (2025-11-23): Vercel 배포 설정
-**목표**: Frontend 및 Backend Vercel 배포
+#### Day 22 (2025-11-05): Vercel 배포 설정 ✅ COMPLETED
+**목표**: Frontend 및 Backend Vercel 배포 설정
+**완료일**: 2025-11-05
 
 **Tasks**:
-- [ ] Frontend Vercel 배포
-  - [ ] `frontend/vercel.json` 작성
-  - [ ] Vercel 프로젝트 생성
-  - [ ] 환경변수 설정 (Kakao API Key)
-  - [ ] Git 연동 (자동 배포)
-  - [ ] 프로덕션 도메인 확인
-- [ ] Backend Vercel Serverless 배포
-  - [ ] `backend/vercel.json` 작성 (Serverless Functions)
-  - [ ] Python 런타임 설정 (3.11)
-  - [ ] 환경변수 설정 (Supabase, Redis, Seoul API)
-  - [ ] Cold start 최적화 (경량 패키지)
-- [ ] CORS 설정 업데이트 (프로덕션 도메인)
-- [ ] API Base URL 업데이트 (Frontend .env)
-- [ ] 배포 테스트 (프로덕션 환경)
+- [x] Frontend Vercel 배포 설정
+  - [x] `frontend/vercel.json` 작성
+    - Vite 빌드 설정
+    - SPA 라우팅 지원 (rewrites)
+    - 정적 파일 캐싱 헤더 (1년)
+    - 보안 헤더 (X-Content-Type-Options, X-Frame-Options, CSP)
+    - 서울 리전 (icn1) 설정
+  - [x] 환경변수 설정 문서화 (VITE_KAKAO_MAP_API_KEY, VITE_API_BASE_URL)
+  - [x] 배포 가이드 작성 (VERCEL_DEPLOYMENT_GUIDE.md)
+  - [x] Git 연동 방법 문서화
+- [x] Backend Vercel Serverless 배포 설정
+  - [x] `backend/vercel.json` 작성 (Serverless Functions)
+    - Python 3.11 런타임 설정
+    - 60s timeout, 1024MB memory
+    - 서울 리전 (icn1) 설정
+  - [x] `backend/api/index.py` 작성 (Vercel handler)
+  - [x] 환경변수 설정 문서화 (Supabase, Redis, Seoul API)
+  - [x] Cold start 최적화 (maxLambdaSize: 50mb)
+- [x] CORS 설정 업데이트 (프로덕션 도메인)
+  - [x] backend/app/core/config.py 수정
+    - https://seoul-location-services.vercel.app 추가
+    - https://*.vercel.app 와일드카드 추가
+    - CORS_ORIGINS_EXTRA 환경 변수 지원
+    - get_cors_origins() 메서드 구현
+  - [x] backend/app/main.py 수정 (get_cors_origins() 사용)
+- [x] 문서화
+  - [x] VERCEL_ENV_VARIABLES.md (환경 변수 전체 목록 및 설정 가이드)
+  - [x] VERCEL_DEPLOYMENT_GUIDE.md (단계별 배포 가이드, 트러블슈팅)
+- [x] Git 커밋 및 푸시 (commit e86feb0)
 
 **산출물**:
-- Frontend 배포 완료 (예: seoul-services.vercel.app)
-- Backend 배포 완료 (예: seoul-services-api.vercel.app)
+- ✅ Frontend Vercel 설정 완료 (frontend/vercel.json)
+- ✅ Backend Vercel 설정 완료 (backend/vercel.json + api/index.py)
+- ✅ CORS 프로덕션 도메인 지원
+- ✅ 환경 변수 문서화 (VERCEL_ENV_VARIABLES.md)
+- ✅ 배포 가이드 문서화 (VERCEL_DEPLOYMENT_GUIDE.md)
+  - 사전 준비사항 (Supabase, Upstash, Seoul API, Kakao API)
+  - Vercel CLI 사용법
+  - 단계별 배포 절차 (Backend → Frontend)
+  - 트러블슈팅 가이드
+  - CI/CD 설정 방법
+  - 성능 최적화 팁
+
+**다음 단계 (실제 배포)**:
+1. Supabase 프로젝트 생성 및 환경 변수 설정
+2. Upstash Redis 인스턴스 생성
+3. 서울 Open API 키 발급
+4. Kakao Developer 계정 및 API 키 발급
+5. `cd backend && vercel --prod` 실행
+6. `cd frontend && vercel --prod` 실행
+7. Frontend 환경 변수에 Backend URL 설정
+8. 배포 검증 및 모니터링
 
 ---
 
