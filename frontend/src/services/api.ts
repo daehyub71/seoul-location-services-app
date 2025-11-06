@@ -129,12 +129,14 @@ export async function getNearbyServices(
     //   library_name/fac_name/title/svcnm/name, address, ...other fields
     // }
 
-    // Extract coordinates - different tables use different field names:
-    // - cultural_events: lat, lot
-    // - future_heritages, libraries: latitude, longitude
-    // - public_reservations: y_coord, x_coord
-    let latitude: number = serviceItem.latitude || serviceItem.lat || serviceItem.y_coord || 0
-    let longitude: number = serviceItem.longitude || serviceItem.lon || serviceItem.lot || serviceItem.x_coord || 0
+    // Extract coordinates - backend provides normalized 'location' object
+    // Fallback to various field names for compatibility:
+    // - location.lat, location.lon (preferred - normalized by backend)
+    // - raw_data.lat, raw_data.lot (cultural_events)
+    // - latitude, longitude (libraries, future_heritages)
+    // - y_coord, x_coord (public_reservations)
+    let latitude: number = serviceItem.location?.lat || serviceItem.latitude || serviceItem.lat || serviceItem.y_coord || 0
+    let longitude: number = serviceItem.location?.lon || serviceItem.longitude || serviceItem.lon || serviceItem.lot || serviceItem.x_coord || 0
 
     // Validate coordinates
     if (isNaN(latitude) || isNaN(longitude)) {
@@ -149,12 +151,12 @@ export async function getNearbyServices(
 
     const service: any = {
       id: serviceItem.id,
-      category: serviceItem._table, // Use _table as category
-      name: serviceItem.library_name || serviceItem.fac_name || serviceItem.title || serviceItem.svcnm || serviceItem.name,
+      category: serviceItem.category, // Backend already provides normalized category
+      name: serviceItem.title || serviceItem.library_name || serviceItem.fac_name || serviceItem.svcnm || serviceItem.name,
       latitude,
       longitude,
       address: serviceItem.address || serviceItem.addr,
-      distance: serviceItem.distance,
+      distance: serviceItem.location?.distance || serviceItem.distance,
       distance_formatted: serviceItem.distance_formatted,
       // Preserve all fields for InfoWindow
       ...serviceItem,
