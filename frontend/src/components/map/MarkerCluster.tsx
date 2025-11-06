@@ -31,6 +31,7 @@ export default function MarkerCluster({
   const markersRef = useRef<Array<{ service: AnyService; marker: any }>>([])
   const clusterOverlaysRef = useRef<any[]>([])
   const infoWindowRef = useRef<KakaoInfoWindow | null>(null)
+  const currentServiceIdRef = useRef<string | null>(null) // Track which service InfoWindow is showing
 
   // Add map click listener to close InfoWindow
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function MarkerCluster({
         console.log('[MarkerCluster] Map clicked - closing InfoWindow')
         infoWindowRef.current.close()
         infoWindowRef.current = null
+        currentServiceIdRef.current = null
       }
     }
 
@@ -82,6 +84,7 @@ export default function MarkerCluster({
     if (infoWindowRef.current) {
       infoWindowRef.current.close()
       infoWindowRef.current = null
+      currentServiceIdRef.current = null
     }
 
     // Cluster services
@@ -185,6 +188,7 @@ export default function MarkerCluster({
           // Open InfoWindow
           infoWindow.open(map, marker)
           infoWindowRef.current = infoWindow
+          currentServiceIdRef.current = service.id
 
           console.log('[MarkerCluster] InfoWindow opened (no map movement)')
 
@@ -215,6 +219,8 @@ export default function MarkerCluster({
       })
       if (infoWindowRef.current) {
         infoWindowRef.current.close()
+        infoWindowRef.current = null
+        currentServiceIdRef.current = null
       }
     }
   }, [map, services, clusterThreshold, userLocation, onServiceClick])
@@ -230,12 +236,19 @@ export default function MarkerCluster({
       id: selectedService.id
     })
 
+    // If InfoWindow is already showing this service, don't close and reopen it
+    if (currentServiceIdRef.current === selectedService.id && infoWindowRef.current) {
+      console.log('[MarkerCluster] InfoWindow already showing selected service - keeping it open')
+      return
+    }
+
     // Find marker for selected service
     const markerData = markersRef.current.find(({ service }) => service.id === selectedService.id)
 
     // Close previous infoWindow
     if (infoWindowRef.current) {
       infoWindowRef.current.close()
+      currentServiceIdRef.current = null
     }
 
     if (!markerData) {
@@ -270,6 +283,7 @@ export default function MarkerCluster({
       infoWindow.open(map)
       infoWindow.setPosition(position)
       infoWindowRef.current = infoWindow
+      currentServiceIdRef.current = selectedService.id
 
       // Don't move map - just show InfoWindow
       // map.panTo(position)
@@ -293,6 +307,7 @@ export default function MarkerCluster({
     // Open InfoWindow
     infoWindow.open(map, marker)
     infoWindowRef.current = infoWindow
+    currentServiceIdRef.current = selectedService.id
 
     console.log('[MarkerCluster] InfoWindow opened for selected service (no map movement)')
 
