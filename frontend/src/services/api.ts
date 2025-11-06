@@ -128,8 +128,12 @@ export async function getNearbyServices(
     //   library_name/fac_name/title/svcnm/name, address, ...other fields
     // }
 
-    let latitude: number = serviceItem.latitude || serviceItem.lat || 0
-    let longitude: number = serviceItem.longitude || serviceItem.longitude || serviceItem.lot || 0
+    // Extract coordinates - different tables use different field names:
+    // - cultural_events: lat, lot
+    // - future_heritages, libraries: latitude, longitude
+    // - public_reservations: y_coord, x_coord
+    let latitude: number = serviceItem.latitude || serviceItem.lat || serviceItem.y_coord || 0
+    let longitude: number = serviceItem.longitude || serviceItem.lon || serviceItem.lot || serviceItem.x_coord || 0
 
     // Validate coordinates
     if (isNaN(latitude) || isNaN(longitude)) {
