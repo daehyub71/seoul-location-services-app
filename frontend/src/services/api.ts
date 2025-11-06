@@ -118,10 +118,11 @@ export async function getNearbyServices(
   const backendData = response.data
 
   console.log('[API] Backend response:', backendData)
-  console.log('[API] Locations count:', backendData.locations?.length || 0)
+  console.log('[API] Services count:', (backendData.services || backendData.locations || []).length)
 
-  // Map backend "locations" to frontend format
-  const services = (backendData.locations || []).map((serviceItem: any) => {
+  // Map backend "services" to frontend format
+  // Backend may return either "services" or "locations" key depending on endpoint
+  const services = (backendData.services || backendData.locations || []).map((serviceItem: any) => {
     // Backend structure from simple_app.py:
     // {
     //   id, api_id, latitude, longitude, _table, distance, distance_formatted,
