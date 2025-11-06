@@ -32,10 +32,13 @@ export default function MarkerCluster({
   const clusterOverlaysRef = useRef<any[]>([])
   const infoWindowRef = useRef<KakaoInfoWindow | null>(null)
   const currentServiceIdRef = useRef<string | null>(null) // Track which service InfoWindow is showing
+  const pendingInfoWindowRef = useRef<{ service: AnyService; marker: any; content: string } | null>(null) // Store InfoWindow data during map movement
 
-  // Add map click listener to close InfoWindow
+  // Add map event listeners
   useEffect(() => {
     if (!map || !window.kakao) return
+
+    let isMapMoving = false
 
     const handleMapClick = () => {
       if (infoWindowRef.current) {
@@ -43,15 +46,69 @@ export default function MarkerCluster({
         infoWindowRef.current.close()
         infoWindowRef.current = null
         currentServiceIdRef.current = null
+        pendingInfoWindowRef.current = null
       }
     }
 
-    // Add click listener to map
+    // Track when map starts moving
+    const handleDragStart = () => {
+      console.log('[MarkerCluster] Map drag started')
+      isMapMoving = true
+    }
+
+    const handleZoomStart = () => {
+      console.log('[MarkerCluster] Zoom started')
+      isMapMoving = true
+    }
+
+    // When map stops moving, restore InfoWindow if pending
+    const handleIdle = () => {
+      if (isMapMoving && pendingInfoWindowRef.current) {
+        console.log('[MarkerCluster] Map idle - restoring InfoWindow')
+
+        const { service, marker, content } = pendingInfoWindowRef.current
+
+        // Wait a bit to ensure map has fully settled
+        setTimeout(() => {
+          // Close previous infoWindow
+          if (infoWindowRef.current) {
+            infoWindowRef.current.close()
+          }
+
+          // Create new InfoWindow
+          const infoWindow = createInfoWindow({
+            content,
+            removable: true,
+            zIndex: 1000,
+          })
+
+          // Open InfoWindow
+          infoWindow.open(map, marker)
+          infoWindowRef.current = infoWindow
+          currentServiceIdRef.current = service.id
+
+          console.log('[MarkerCluster] InfoWindow restored')
+
+          // Clear pending state
+          pendingInfoWindowRef.current = null
+        }, 100)
+      }
+
+      isMapMoving = false
+    }
+
+    // Add all listeners
     window.kakao.maps.event.addListener(map, 'click', handleMapClick)
+    window.kakao.maps.event.addListener(map, 'dragstart', handleDragStart)
+    window.kakao.maps.event.addListener(map, 'zoom_start', handleZoomStart)
+    window.kakao.maps.event.addListener(map, 'idle', handleIdle)
 
     // Cleanup
     return () => {
       window.kakao.maps.event.removeListener(map, 'click', handleMapClick)
+      window.kakao.maps.event.removeListener(map, 'dragstart', handleDragStart)
+      window.kakao.maps.event.removeListener(map, 'zoom_start', handleZoomStart)
+      window.kakao.maps.event.removeListener(map, 'idle', handleIdle)
     }
   }, [map])
 
@@ -168,32 +225,35 @@ export default function MarkerCluster({
         })
 
         // Add click handler
-        window.kakao.maps.event.addListener(marker, 'click', () => {
+        window.kakao.maps.event.addListener(marker, 'click', (e: any) => {
+          e.stopPropagation?.() // Prevent map click event
+
           console.log('[MarkerCluster] Marker clicked', { service: service.name, category: service.category })
+
+          // Create InfoWindow content
+          const content = createServiceInfoWindowContent(service)
 
           // Close previous infoWindow
           if (infoWindowRef.current) {
             infoWindowRef.current.close()
+            infoWindowRef.current = null
           }
 
-          // Create InfoWindow with all API data
-          const content = createServiceInfoWindowContent(service)
+          // Always store InfoWindow data for restoration
+          pendingInfoWindowRef.current = { service, marker, content }
 
+          // Show InfoWindow immediately
           const infoWindow = createInfoWindow({
             content,
             removable: true,
             zIndex: 1000,
           })
 
-          // Open InfoWindow
           infoWindow.open(map, marker)
           infoWindowRef.current = infoWindow
           currentServiceIdRef.current = service.id
 
-          console.log('[MarkerCluster] InfoWindow opened (no map movement)')
-
-          // Don't pan to marker - just show InfoWindow
-          // map.panTo(position)
+          console.log('[MarkerCluster] InfoWindow opened')
 
           // Call parent handler
           if (onServiceClick) {

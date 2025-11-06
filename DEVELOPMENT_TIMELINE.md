@@ -1078,6 +1078,62 @@
 
 ---
 
+#### Day 24.5 (2025-11-06): 모바일 UI/UX 개선 ✅
+**목표**: 모바일 반응형 디자인 개선 및 사용자 경험 최적화
+**완료일**: 2025-11-06
+
+**Tasks**:
+- [x] 모바일 UX 문제 분석
+  - [x] 사용자 피드백: "서비스도 지도도 잘 안보이는 UI"
+  - [x] 현재 문제점 파악 (하단 시트가 두 가지를 모두 가림)
+  - [x] 개선 방안 설계 (Map/List 토글 방식)
+- [x] `components/mobile/MobileServiceCards.tsx` 구현
+  - [x] 수평 스크롤 카드 캐러셀 (Google Maps 스타일)
+  - [x] 264px 카드 너비, 상위 20개 서비스 표시
+  - [x] 카테고리별 색상 테마 적용
+  - [x] 거리, 주소, 액션 버튼 포함
+  - [x] 선택된 서비스로 자동 스크롤
+  - [x] Snap scroll 동작
+- [x] `components/mobile/ViewModeToggle.tsx` 구현
+  - [x] Map/List 뷰 전환 토글 버튼
+  - [x] Framer Motion 애니메이션 (layoutId)
+  - [x] Pill 형태 디자인
+  - [x] 아이콘 + 텍스트 레이블
+- [x] `App.tsx` 반응형 레이아웃 재구성
+  - [x] 모바일 감지 로직 (768px breakpoint)
+  - [x] 뷰 모드 상태 관리 (viewMode: 'map' | 'list')
+  - [x] 3가지 레이아웃 모드 구현:
+    - 데스크톱: 좌측 사이드바 (320px) + 지도
+    - 모바일 지도 뷰: 전체 화면 지도 + 하단 카드 캐러셀 + 상단 플로팅 컨트롤
+    - 모바일 리스트 뷰: 전체 화면 서비스 리스트 + 상단 검색 컨트롤
+  - [x] 조건부 렌더링 최적화
+- [x] CSS 유틸리티 추가
+  - [x] `index.css`에 `.scrollbar-hide` 클래스 추가
+  - [x] 크로스 브라우저 scrollbar 숨김 처리
+- [x] 버그 수정
+  - [x] React 익명 컴포넌트 경고 (displayName 추가)
+  - [x] API 응답 구조 불일치 수정 (locations vs services)
+  - [x] InfoWindow 지도 이동 시 사라지는 문제 해결
+  - [x] 주소 검색 후 동일 데이터 표시 문제 해결
+
+**산출물**:
+- ✅ 2개 모바일 전용 컴포넌트 완성
+  - MobileServiceCards.tsx (150+ 줄)
+  - ViewModeToggle.tsx (60+ 줄)
+- ✅ App.tsx 반응형 로직 (300+ 줄)
+- ✅ 크로스 브라우저 scrollbar 숨김 CSS
+- ✅ InfoWindow 상태 관리 개선 (MarkerCluster.tsx)
+- ✅ 모든 React console 경고 해결
+- ✅ 모바일/데스크톱 최적화된 UX
+
+**성능 개선**:
+- 카드 렌더링: 상위 20개만 표시 (성능 최적화)
+- useEffect auto-scroll: 선택된 서비스로 부드러운 스크롤
+- React.memo: ServiceListItem, ServiceList, ResponsivePanel
+- 조건부 렌더링: 불필요한 컴포넌트 렌더링 방지
+
+---
+
 #### Day 25 (2025-11-26): 성능 및 보안 테스트
 **목표**: Lighthouse, 부하 테스트, 보안 점검
 

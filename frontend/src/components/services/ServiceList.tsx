@@ -317,3 +317,5 @@ export default function ServiceList({
     </div>
   )
 }
+
+ServiceList.displayName = 'ServiceList'

@@ -179,3 +179,5 @@ export default function ResponsivePanel({
     </AnimatePresence>
   )
 }
+
+ResponsivePanel.displayName = 'ResponsivePanel'

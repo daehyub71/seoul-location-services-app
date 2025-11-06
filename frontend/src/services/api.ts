@@ -117,38 +117,19 @@ export async function getNearbyServices(
   // Transform backend response to match frontend types
   const backendData = response.data
 
-  // Map backend "services" to frontend format
-  const services = (backendData.services || []).map((serviceItem: any) => {
-    // Backend structure:
+  console.log('[API] Backend response:', backendData)
+  console.log('[API] Locations count:', backendData.locations?.length || 0)
+
+  // Map backend "locations" to frontend format
+  const services = (backendData.locations || []).map((serviceItem: any) => {
+    // Backend structure from simple_app.py:
     // {
-    //   id, title, category, category_label, icon,
-    //   location: { lat, lon, distance },
-    //   address, description, raw_data
+    //   id, api_id, latitude, longitude, _table, distance, distance_formatted,
+    //   library_name/fac_name/title/svcnm/name, address, ...other fields
     // }
 
-    let latitude: number
-    let longitude: number
-
-    // Try to get coordinates from location object or raw_data
-    if (serviceItem.location) {
-      latitude = parseFloat(serviceItem.location.lat)
-      longitude = parseFloat(serviceItem.location.lon)
-    } else if (serviceItem.raw_data) {
-      const raw = serviceItem.raw_data
-      if (raw.y !== undefined && raw.y !== null) {
-        latitude = parseFloat(raw.y)
-        longitude = parseFloat(raw.x)
-      } else if (raw.lat !== undefined && raw.lat !== null) {
-        latitude = parseFloat(raw.lat)
-        longitude = parseFloat(raw.lon !== undefined ? raw.lon : raw.lot)
-      } else {
-        latitude = parseFloat(raw.latitude)
-        longitude = parseFloat(raw.longitude)
-      }
-    } else {
-      latitude = 0
-      longitude = 0
-    }
+    let latitude: number = serviceItem.latitude || serviceItem.lat || 0
+    let longitude: number = serviceItem.longitude || serviceItem.longitude || serviceItem.lot || 0
 
     // Validate coordinates
     if (isNaN(latitude) || isNaN(longitude)) {
@@ -163,28 +144,15 @@ export async function getNearbyServices(
 
     const service: any = {
       id: serviceItem.id,
-      category: serviceItem.category,
-      name: serviceItem.title,
+      category: serviceItem._table, // Use _table as category
+      name: serviceItem.library_name || serviceItem.fac_name || serviceItem.title || serviceItem.svcnm || serviceItem.name,
       latitude,
       longitude,
-      address: serviceItem.address,
-      distance: serviceItem.location?.distance,
-      description: serviceItem.description,
-      icon: serviceItem.icon,
-      category_label: serviceItem.category_label,
-      // Preserve raw data for InfoWindow
-      raw_data: serviceItem.raw_data,
-    }
-
-    // Add category-specific fields from raw_data
-    if (serviceItem.raw_data) {
-      const raw = serviceItem.raw_data
-      if (raw.strtdate && raw.end_date) {
-        service.event_period = `${raw.strtdate} ~ ${raw.end_date}`
-      }
-      service.use_fee = raw.use_fee || raw.is_free
-      service.operating_hours = raw.opertime
-      service.homepage = raw.homepage || raw.hmpg_addr || raw.org_link
+      address: serviceItem.address || serviceItem.addr,
+      distance: serviceItem.distance,
+      distance_formatted: serviceItem.distance_formatted,
+      // Preserve all fields for InfoWindow
+      ...serviceItem,
     }
 
     return service

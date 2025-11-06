@@ -250,10 +250,14 @@ function getThumbnailUrl(service: AnyService): string | null {
 }
 
 // Memoize component to prevent unnecessary re-renders
-export default memo(ServiceListItem, (prevProps, nextProps) => {
+const MemoizedServiceListItem = memo(ServiceListItem, (prevProps, nextProps) => {
   return (
     prevProps.service.id === nextProps.service.id &&
     prevProps.isSelected === nextProps.isSelected &&
     prevProps.service.distance === nextProps.service.distance
   )
 })
+
+MemoizedServiceListItem.displayName = 'ServiceListItem'
+
+export default MemoizedServiceListItem

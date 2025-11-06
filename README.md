@@ -26,6 +26,12 @@
 - **카카오 맵 시각화**: 카테고리별 마커 표시 및 클러스터링
 - **거리 기반 정렬**: 가까운 곳부터 자동 정렬
 - **상세 정보 제공**: 운영시간, 예약 링크, 길찾기 등
+- **모바일 최적화 UI/UX** ✨:
+  - 반응형 디자인 (768px breakpoint)
+  - Map/List 뷰 토글 (모바일 전용)
+  - 수평 스크롤 서비스 카드 캐러셀
+  - 플로팅 검색 컨트롤
+  - 터치 제스처 지원
 
 ## 기술 스택
 
@@ -150,10 +156,13 @@ npm run dev
 - **Week 1** (Day 1-7): 데이터 수집 파이프라인 구축 ✅
 - **Week 2** (Day 8-14): Backend API 개발 (LangGraph) ✅
 - **Week 3** (Day 15-21): Frontend 개발 (React + Kakao Map) ✅
-- **Week 4** (Day 22-28): 통합 테스트 및 배포 🚧
-  - **Day 22**: Backend 기본 배포 완료 ✅
+- **Week 4** (Day 22-28): 통합 테스트 및 배포 ✅
+  - **Day 22**: Vercel 배포 설정 완료 ✅
+  - **Day 23**: CI/CD 파이프라인 구축 완료 ✅
+  - **Day 24**: E2E 테스트 완료 ✅
+  - **Day 24.5**: 모바일 UI/UX 개선 완료 ✅
 
-자세한 일정은 [PROJECT_PLAN.md](./PROJECT_PLAN.md)를 참고하세요.
+자세한 일정은 [DEVELOPMENT_TIMELINE.md](./DEVELOPMENT_TIMELINE.md) 및 [PROJECT_PLAN.md](./PROJECT_PLAN.md)를 참고하세요.
 
 ## 배포 상태
 

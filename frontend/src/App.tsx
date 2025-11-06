@@ -1,10 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import KakaoMap from '@/components/map/KakaoMap'
 import ResponsivePanel from '@/components/layout/ResponsivePanel'
 import LocationInput from '@/components/location/LocationInput'
 import CurrentLocation from '@/components/location/CurrentLocation'
 import ServiceList from '@/components/services/ServiceList'
 import ServiceDetail from '@/components/services/ServiceDetail'
+import MobileServiceCards from '@/components/mobile/MobileServiceCards'
+import ViewModeToggle, { type ViewMode } from '@/components/mobile/ViewModeToggle'
 import type { AnyService } from '@/types/services'
 import { ServiceCategory } from '@/types/services'
 import { useLocation } from '@/hooks/useLocation'
@@ -80,11 +82,27 @@ function App() {
     longitude: number
   } | null>(null)
   const [searchRadius, setSearchRadius] = useState(5000) // 5km default
+  const [isMobile, setIsMobile] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('map')
 
   const { location: userLocation } = useLocation()
 
+  // Detect mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   // Use search location or user location
   const activeLocation = searchLocation || userLocation
+
+  console.log('[App] Active location:', activeLocation)
+  console.log('[App] Search radius:', searchRadius)
 
   // Fetch nearby services (only when location is available)
   const {
@@ -105,7 +123,17 @@ function App() {
   // Use API data if available, otherwise use mock data
   // Memoize to prevent unnecessary marker recreation
   const services = useMemo(() => {
-    return servicesData?.data?.services || mockServices
+    console.log('[App] servicesData:', servicesData)
+    console.log('[App] servicesData?.data:', servicesData?.data)
+    console.log('[App] servicesData?.data?.services:', servicesData?.data?.services)
+
+    // api.ts already transforms the data, just use it
+    const apiServices = servicesData?.data?.services || []
+
+    console.log('[App] apiServices count:', apiServices.length)
+    console.log('[App] Using:', apiServices.length > 0 ? 'API services' : 'Mock services')
+
+    return apiServices.length > 0 ? apiServices : mockServices
   }, [servicesData?.data?.services])
 
   const handleServiceClick = (service: AnyService) => {
@@ -126,6 +154,7 @@ function App() {
   ) => {
     console.log('Location selected:', { address, latitude, longitude })
     setSearchLocation({ latitude, longitude })
+    console.log('Search location updated. Will fetch new services around:', latitude, longitude)
   }
 
   const handleCurrentLocationChange = (latitude: number, longitude: number) => {
@@ -138,76 +167,169 @@ function App() {
     <div className="h-screen w-screen flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm border-b z-20 h-16 flex-shrink-0">
-        <div className="px-6 py-4">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+        <div className="px-4 md:px-6 py-4 flex items-center justify-between">
+          <h1 className="text-lg md:text-2xl font-bold text-gray-900">
             Seoul Location Services
           </h1>
+
+          {/* Mobile: View Mode Toggle */}
+          {isMobile && (
+            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+          )}
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 relative overflow-hidden">
-        {/* Left Panel (Desktop) / Bottom Sheet (Mobile) */}
-        <ResponsivePanel title="서비스 검색" isOpen={true}>
-          <div className="flex flex-col h-full">
-            {/* Location Controls */}
-            <div className="flex-shrink-0 p-4 space-y-4 border-b bg-gray-50">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                  위치 설정
-                </h3>
-                <CurrentLocation onLocationChange={handleCurrentLocationChange} />
+        {/* Desktop: Left Panel */}
+        {!isMobile && (
+          <ResponsivePanel title="서비스 검색" isOpen={true}>
+            <div className="flex flex-col h-full">
+              {/* Location Controls */}
+              <div className="flex-shrink-0 p-4 space-y-4 border-b bg-gray-50">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                    위치 설정
+                  </h3>
+                  <CurrentLocation onLocationChange={handleCurrentLocationChange} />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                    주소 검색
+                  </h3>
+                  <LocationInput onLocationSelect={handleLocationSelect} />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-2">
+                    검색 반경
+                  </label>
+                  <select
+                    value={searchRadius}
+                    onChange={(e) => setSearchRadius(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value={1000}>1km</option>
+                    <option value={2000}>2km</option>
+                    <option value={5000}>5km</option>
+                    <option value={10000}>10km</option>
+                    <option value={20000}>20km</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                  주소 검색
-                </h3>
-                <LocationInput onLocationSelect={handleLocationSelect} />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-2">
-                  검색 반경
-                </label>
-                <select
-                  value={searchRadius}
-                  onChange={(e) => setSearchRadius(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={1000}>1km</option>
-                  <option value={2000}>2km</option>
-                  <option value={5000}>5km</option>
-                  <option value={10000}>10km</option>
-                  <option value={20000}>20km</option>
-                </select>
-              </div>
+              {/* Service List */}
+              <ServiceList
+                services={services}
+                loading={isLoading}
+                error={error as Error}
+                userLocation={activeLocation}
+                onServiceClick={handleServiceClick}
+                selectedServiceId={selectedService?.id}
+                className="flex-1"
+              />
             </div>
+          </ResponsivePanel>
+        )}
 
-            {/* Service List */}
-            <ServiceList
+        {/* Mobile: Map or List View */}
+        {isMobile ? (
+          <>
+            {viewMode === 'map' ? (
+              <>
+                {/* Map View with Bottom Cards */}
+                <div className="absolute inset-0">
+                  <KakaoMap
+                    services={services}
+                    onServiceClick={handleServiceClick}
+                    onMapClick={handleMapClick}
+                    userLocation={activeLocation}
+                    selectedService={selectedService}
+                    className="w-full h-full"
+                  />
+                </div>
+
+                {/* Bottom Horizontal Scroll Cards */}
+                <div className="absolute bottom-0 left-0 right-0 z-10">
+                  <MobileServiceCards
+                    services={services}
+                    onServiceClick={handleServiceClick}
+                    selectedServiceId={selectedService?.id}
+                  />
+                </div>
+
+                {/* Floating Controls */}
+                <div className="absolute top-4 left-4 right-4 z-10 space-y-3">
+                  <div className="bg-white rounded-lg shadow-lg p-3 space-y-2">
+                    <LocationInput
+                      onLocationSelect={handleLocationSelect}
+                      placeholder="주소 검색..."
+                    />
+                    <select
+                      value={searchRadius}
+                      onChange={(e) => setSearchRadius(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value={1000}>1km</option>
+                      <option value={2000}>2km</option>
+                      <option value={5000}>5km</option>
+                      <option value={10000}>10km</option>
+                      <option value={20000}>20km</option>
+                    </select>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* List View */
+              <div className="absolute inset-0 bg-gray-50">
+                <div className="h-full flex flex-col">
+                  {/* Search Controls */}
+                  <div className="flex-shrink-0 bg-white p-4 space-y-3 border-b">
+                    <LocationInput
+                      onLocationSelect={handleLocationSelect}
+                      placeholder="주소 검색..."
+                    />
+                    <select
+                      value={searchRadius}
+                      onChange={(e) => setSearchRadius(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value={1000}>1km</option>
+                      <option value={2000}>2km</option>
+                      <option value={5000}>5km</option>
+                      <option value={10000}>10km</option>
+                      <option value={20000}>20km</option>
+                    </select>
+                  </div>
+
+                  {/* Service List */}
+                  <ServiceList
+                    services={services}
+                    loading={isLoading}
+                    error={error as Error}
+                    userLocation={activeLocation}
+                    onServiceClick={handleServiceClick}
+                    selectedServiceId={selectedService?.id}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          /* Desktop: Map */
+          <div className="absolute inset-0 md:left-80">
+            <KakaoMap
               services={services}
-              loading={isLoading}
-              error={error as Error}
-              userLocation={activeLocation}
               onServiceClick={handleServiceClick}
-              selectedServiceId={selectedService?.id}
-              className="flex-1"
+              onMapClick={handleMapClick}
+              userLocation={activeLocation}
+              selectedService={selectedService}
+              className="w-full h-full"
             />
           </div>
-        </ResponsivePanel>
-
-        {/* Map */}
-        <div className="absolute inset-0 md:left-80">
-          <KakaoMap
-            services={services}
-            onServiceClick={handleServiceClick}
-            onMapClick={handleMapClick}
-            userLocation={activeLocation}
-            selectedService={selectedService}
-            className="w-full h-full"
-          />
-        </div>
+        )}
       </main>
 
       {/* Service Detail Modal */}
