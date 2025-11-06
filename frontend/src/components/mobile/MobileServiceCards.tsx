@@ -71,11 +71,13 @@ export default function MobileServiceCards({
                 flex-shrink-0 w-64 snap-center
                 bg-white rounded-xl shadow-lg
                 border-2 transition-all cursor-pointer
-                ${isSelected ? 'ring-2 ring-offset-2' : 'hover:shadow-xl'}
+                ${isSelected ? 'shadow-2xl' : 'hover:shadow-xl'}
               `}
               style={{
                 borderColor: isSelected ? categoryColor : '#e5e7eb',
-                ringColor: categoryColor,
+                ...(isSelected && {
+                  boxShadow: `0 0 0 3px ${categoryColor}20`,
+                }),
               }}
             >
               {/* Card Content */}
