@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ServiceCategory, AnyService } from '@/types/services'
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/services'
+import type { ServiceCategory } from '@/types/services'
+import { CATEGORY_COLORS } from '@/types/services'
+
+// Re-export from kakao-infowindow module
+export { createServiceInfoWindowContent } from './kakao-infowindow'
 
 // Kakao Maps SDK Type Definitions
 declare global {
@@ -351,123 +354,4 @@ export function createInfoWindow(options: KakaoInfoWindowOptions): KakaoInfoWind
   return new window.kakao.maps.InfoWindow(options)
 }
 
-/**
- * Create InfoWindow content HTML for a service
- * Now displays ALL API data fields dynamically
- */
-export function createServiceInfoWindowContent(service: AnyService): string {
-  const categoryLabel = CATEGORY_LABELS[service.category]
-  const categoryColor = CATEGORY_COLORS[service.category]
-
-  // Helper to format field names (snake_case to readable)
-  const formatFieldName = (key: string): string => {
-    // Skip internal fields
-    if (['id', 'category', 'name', 'latitude', 'longitude', 'distance'].includes(key)) {
-      return ''
-    }
-
-    // Convert snake_case to Title Case
-    return key
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
-
-  // Helper to format field values
-  const formatValue = (value: any, key: string): string => {
-    if (value === null || value === undefined || value === '') {
-      return '-'
-    }
-
-    // Check if it's a URL
-    if (
-      typeof value === 'string' &&
-      (value.startsWith('http://') || value.startsWith('https://'))
-    ) {
-      return `<a href="${value}" target="_blank" style="color: #1971C2; text-decoration: underline;">바로가기</a>`
-    }
-
-    // Check if it's a number with specific formatting needs
-    if (typeof value === 'number') {
-      // If key suggests it's a count/quantity, format with commas
-      if (key.includes('co') || key.includes('count') || key.includes('num')) {
-        return value.toLocaleString()
-      }
-      return String(value)
-    }
-
-    // If it's an object or array, stringify it
-    if (typeof value === 'object') {
-      return JSON.stringify(value, null, 2)
-    }
-
-    // Return as string
-    return String(value).replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  }
-
-  // Build details HTML by iterating over all properties
-  let detailsHtml = ''
-  const serviceObj = service as any
-
-  // Get all keys and sort them (optional - can remove sort for original order)
-  const keys = Object.keys(serviceObj)
-
-  keys.forEach((key) => {
-    const fieldName = formatFieldName(key)
-    if (!fieldName) return // Skip internal fields
-
-    const value = serviceObj[key]
-    const formattedValue = formatValue(value, key)
-
-    detailsHtml += `
-      <div class="info-row">
-        <span class="label">${fieldName}:</span>
-        <span class="value">${formattedValue}</span>
-      </div>
-    `
-  })
-
-  // Build complete HTML
-  const html = `
-    <div class="kakao-infowindow" style="padding: 16px; min-width: 320px; max-width: 450px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-      <div style="display: flex; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 2px solid ${categoryColor};">
-        <div style="width: 12px; height: 12px; border-radius: 50%; background-color: ${categoryColor}; margin-right: 8px;"></div>
-        <div style="flex: 1;">
-          <div style="font-size: 10px; color: #868e96; text-transform: uppercase; letter-spacing: 0.5px;">${categoryLabel}</div>
-          <div style="font-size: 16px; font-weight: 700; color: #212529; margin-top: 2px;">${service.name}</div>
-        </div>
-      </div>
-      <div style="font-size: 13px; line-height: 1.6; color: #495057; max-height: 500px; overflow-y: auto;">
-        ${detailsHtml}
-        <div class="info-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e9ecef;">
-          <span class="label">좌표:</span>
-          <span class="value">${service.latitude.toFixed(6)}, ${service.longitude.toFixed(6)}</span>
-        </div>
-      </div>
-    </div>
-    <style>
-      .kakao-infowindow .info-row {
-        margin-bottom: 8px;
-        display: flex;
-        gap: 8px;
-        align-items: flex-start;
-      }
-      .kakao-infowindow .label {
-        font-weight: 600;
-        color: #495057;
-        min-width: 100px;
-        flex-shrink: 0;
-      }
-      .kakao-infowindow .value {
-        flex: 1;
-        word-break: break-word;
-        white-space: pre-wrap;
-      }
-      .kakao-infowindow a {
-        word-break: break-all;
-      }
-    </style>
-  `
-
-  return html
-}
+// createServiceInfoWindowContent is now exported from kakao-infowindow.ts
