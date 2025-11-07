@@ -225,9 +225,7 @@ export default function MarkerCluster({
         })
 
         // Add click handler
-        window.kakao.maps.event.addListener(marker, 'click', (e: any) => {
-          e.stopPropagation?.() // Prevent map click event
-
+        window.kakao.maps.event.addListener(marker, 'click', () => {
           console.log('[MarkerCluster] Marker clicked', { service: service.name, category: service.category })
 
           // Create InfoWindow content

@@ -59,9 +59,9 @@ export function createServiceInfoWindowContent(service: AnyService): string {
       detailsHtml += addRow('주소', getValue('adres') || getValue('address') || service.address)
       detailsHtml += addRow('전화번호', getValue('tel_no') || getValue('tel'))
       detailsHtml += addRow('홈페이지', getValue('homepage') || getValue('hmpg_addr'), true)
-      detailsHtml += addRow('운영시간', getValue('operTime') || getValue('weekday_optime'))
-      detailsHtml += addRow('정기휴관일', getValue('close_day') || getValue('closeDay'))
-      detailsHtml += addRow('도서관구분', getValue('code_value') || getValue('lbrry_se_name'))
+      detailsHtml += addRow('운영시간', getValue('opertime') || getValue('operTime') || getValue('weekday_optime'))
+      detailsHtml += addRow('정기휴관일', getValue('closing_day') || getValue('close_day') || getValue('closeDay'))
+      detailsHtml += addRow('도서관구분', getValue('libraty_type') || getValue('code_value') || getValue('lbrry_se_name'))
       break
     }
 
