@@ -122,48 +122,70 @@ export async function getNearbyServices(
 
   // Map backend "services" to frontend format
   // Backend may return either "services" or "locations" key depending on endpoint
-  const services = (backendData.services || backendData.locations || []).map((serviceItem: any) => {
-    // Backend structure from simple_app.py:
-    // {
-    //   id, api_id, latitude, longitude, _table, distance, distance_formatted,
-    //   library_name/fac_name/title/svcnm/name, address, ...other fields
-    // }
+  const services = (backendData.services || backendData.locations || [])
+    .map((serviceItem: any) => {
+      // Backend structure from simple_app.py:
+      // {
+      //   id, api_id, latitude, longitude, _table, distance, distance_formatted,
+      //   library_name/fac_name/title/svcnm/name, address, ...other fields
+      // }
 
-    // Extract coordinates - backend provides normalized 'location' object
-    // Fallback to various field names for compatibility:
-    // - location.lat, location.lon (preferred - normalized by backend)
-    // - raw_data.lat, raw_data.lot (cultural_events)
-    // - latitude, longitude (libraries, future_heritages)
-    // - y_coord, x_coord (public_reservations)
-    let latitude: number = serviceItem.location?.lat || serviceItem.latitude || serviceItem.lat || serviceItem.y_coord || 0
-    let longitude: number = serviceItem.location?.lon || serviceItem.longitude || serviceItem.lon || serviceItem.lot || serviceItem.x_coord || 0
+      // Extract coordinates - backend provides normalized 'location' object
+      // Fallback to various field names for compatibility:
+      // - location.lat, location.lon (preferred - normalized by backend)
+      // - raw_data.lat, raw_data.lot (cultural_events)
+      // - latitude, longitude (libraries, future_heritages)
+      // - y_coord, x_coord (public_reservations)
+      let latitude: number = serviceItem.location?.lat || serviceItem.latitude || serviceItem.lat || serviceItem.y_coord || 0
+      let longitude: number = serviceItem.location?.lon || serviceItem.longitude || serviceItem.lon || serviceItem.lot || serviceItem.x_coord || 0
 
-    // Validate coordinates
-    if (isNaN(latitude) || isNaN(longitude)) {
-      console.warn('[API] Invalid coordinates for service', {
-        service: serviceItem,
-        parsedLat: latitude,
-        parsedLon: longitude
-      })
-      latitude = 0
-      longitude = 0
-    }
+      // Validate coordinates
+      if (isNaN(latitude) || isNaN(longitude)) {
+        console.warn('[API] Invalid coordinates for service', {
+          service: serviceItem,
+          parsedLat: latitude,
+          parsedLon: longitude
+        })
+        latitude = 0
+        longitude = 0
+      }
 
-    const service: any = {
-      id: serviceItem.id,
-      category: serviceItem.category, // Backend already provides normalized category
-      name: serviceItem.title || serviceItem.library_name || serviceItem.fac_name || serviceItem.svcnm || serviceItem.name,
-      latitude,
-      longitude,
-      address: serviceItem.address || serviceItem.addr,
-      distance: serviceItem.location?.distance || serviceItem.distance,
-      distance_formatted: serviceItem.distance_formatted,
-      // Preserve all fields for InfoWindow
-      ...serviceItem,
-    }
+      const service: any = {
+        id: serviceItem.id,
+        category: serviceItem.category, // Backend already provides normalized category
+        name: serviceItem.title || serviceItem.library_name || serviceItem.fac_name || serviceItem.svcnm || serviceItem.name,
+        latitude,
+        longitude,
+        address: serviceItem.address || serviceItem.addr,
+        distance: serviceItem.location?.distance || serviceItem.distance,
+        distance_formatted: serviceItem.distance_formatted,
+        // Preserve all fields for InfoWindow
+        ...serviceItem,
+      }
 
-    return service
-  })
+      return service
+    })
+    .filter((service: any) => {
+      // Filter out services with invalid coordinates (0, 0) or missing data
+      // Seoul coordinates are roughly: latitude 37.4-37.7, longitude 126.7-127.2
+      const hasValidCoords = service.latitude !== 0 && service.longitude !== 0 &&
+                             !isNaN(service.latitude) && !isNaN(service.longitude) &&
+                             service.latitude >= 33 && service.latitude <= 39 && // South Korea bounds
+                             service.longitude >= 124 && service.longitude <= 132 // South Korea bounds
+
+      if (!hasValidCoords) {
+        console.warn('[API] Filtering out service with invalid coordinates:', {
+          id: service.id,
+          name: service.name,
+          latitude: service.latitude,
+          longitude: service.longitude
+        })
+      }
+
+      return hasValidCoords
+    })
+
+  console.log('[API] Valid services after filtering:', services.length)
 
   return {
     success: backendData.success !== false,
