@@ -213,23 +213,39 @@ export async function getServiceDetail(
 
 /**
  * Geocode address to coordinates
+ * Uses Kakao Maps SDK Geocoder (no backend API needed)
  */
 export async function geocodeAddress(params: GeocodeRequest): Promise<GeocodeResponse> {
-  const response = await apiClient.post<GeocodeResponse>('/api/v1/geocode', params)
-  return response.data
+  const { geocodeAddress: geocode } = await import('./kakao-geocoding')
+  const result = await geocode(params.address)
+  return {
+    success: result.success,
+    latitude: result.latitude,
+    longitude: result.longitude,
+    address: result.address || params.address,
+  }
 }
 
 /**
  * Reverse geocode coordinates to address
+ * Uses Kakao Maps SDK Geocoder (no backend API needed)
  */
 export async function reverseGeocode(
   params: ReverseGeocodeRequest
 ): Promise<ReverseGeocodeResponse> {
-  const response = await apiClient.post<ReverseGeocodeResponse>(
-    '/api/v1/geocode/reverse',
-    params
-  )
-  return response.data
+  const { reverseGeocode: revGeocode } = await import('./kakao-geocoding')
+  const result = await revGeocode(params.latitude, params.longitude)
+  return {
+    success: result.success,
+    data: {
+      address: result.address || '',
+      sido: '',
+      sigungu: '',
+      dong: '',
+      latitude: result.latitude,
+      longitude: result.longitude,
+    },
+  }
 }
 
 // Export axios instance for custom requests
